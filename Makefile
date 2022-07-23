@@ -12,6 +12,8 @@ BINDIR := $(BUILD)/.o
 
 GA_SUBDIR := $(CURDIR)/GraphAligner
 GFASTATS_SUBDIR := $(CURDIR)/../gfastats
+
+LIBS = -lz
 LDFLAGS :=
 
 ifeq (,$(shell which conda))

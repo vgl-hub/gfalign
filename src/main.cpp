@@ -219,8 +219,27 @@ int main(int argc, char **argv) {
     
     if (tools.at(action) == 2){
         
+        StreamObj streamObj;
+        std::shared_ptr<std::istream> stream;
+        std::string newLine;
+        
         lg.verbose("Evaluating assembly: " + userInput.iSeqFileArg);
         lg.verbose("Using: " + userInput.iAlignFileArg);
+        
+        stream = streamObj.openStream(userInput, 'g');
+        
+        lg.verbose("Created stream object for input assembly file");
+        lg.verbose("Detected stream type (" + streamObj.type() + ").\nStreaming started.");
+        
+        if (stream) {
+                    
+            while (getline(*stream, newLine)) {
+                
+                std::cout<<newLine<<std::endl;
+                
+            }
+            
+        }
         
     }
     
