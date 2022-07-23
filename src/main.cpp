@@ -1,8 +1,41 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string>
+#include <iostream>
+#include <unordered_map>
+#include <getopt.h>
+#include <vector>
+
+#include <fstream>
+
+#include "bed.h"
+
+#include "struct.h"
+#include "functions.h"
+#include "global.h"
+
+#include "zlib.h"
+#include <zstream/zstream_common.hpp>
+#include <zstream/izstream.hpp>
+#include <zstream/izstream_impl.hpp>
+
+#include "struct.h"
+#include "stream-obj.h"
+
 #include <main.h>
 
 std::string version = "0.1";
 
+//global
+std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now(); // immediately start the clock when the program is run
+
+short int tabular_flag;
 int cmd_flag;
+int verbose_flag;
+int stats_flag;
+Log lg;
+
 
 int main(int argc, char **argv) {
     
@@ -10,8 +43,11 @@ int main(int argc, char **argv) {
     short unsigned int pos_op = 1; // optional arguments
     
     bool arguments = true;
+    bool isPipe = false; // to check if input is from pipe
     
-    std::string cmd;
+    UserInput userInput; // initialize input object
+    
+    std::string action, aligner, cmd;
     
     if (argc == 1) { // gfastats with no arguments
             
@@ -21,7 +57,12 @@ int main(int argc, char **argv) {
     }
     
     static struct option long_options[] = { // struct mapping long options
+        {"input-sequence", required_argument, 0, 'f'},
+        {"input-reads", required_argument, 0, 'r'},
+        {"input-alignment", required_argument, 0, 'g'},
         {"cmd", no_argument, &cmd_flag, 1},
+        {"aligner", required_argument, 0, 'a'},
+        {"verbose", no_argument, &verbose_flag, 1},
         {"version", no_argument, 0, 'v'},
         {"help", no_argument, 0, 'h'},
         
@@ -29,15 +70,28 @@ int main(int argc, char **argv) {
     };
     
     const static std::unordered_map<std::string,int> tools{
-        {"stats",1}
+        {"align",1},
+        {"eval",2}
     };
     
     while (arguments) { // loop through argv
         
         int option_index = 0;
         
-        c = getopt_long(argc, argv, "-:vh",
+        c = getopt_long(argc, argv, "-:v:f:a:g:r:h",
                         long_options, &option_index);
+        
+        if (optind < argc && !isPipe) { // if pipe wasn't assigned already
+            
+            isPipe = isDash(argv[optind]) ? true : false; // check if the argument to the option is a '-' and set it as pipe input
+            
+        }
+        
+        if (optarg != nullptr && !isPipe) { // case where pipe input is given as positional argument (input sequence file)
+        
+            isPipe = isDash(optarg) ? true : false;
+            
+        }
         
         if (c == -1) { // exit the loop if run out of options
             break;
@@ -47,7 +101,8 @@ int main(int argc, char **argv) {
         switch (c) {
             case ':': // handle options without arguments
                 switch (optopt) { // the command line option last matched
-                    case 'b':
+                    case 'a':
+                        aligner = "GraphAligner";
                         break;
                         
                     default:
@@ -56,17 +111,23 @@ int main(int argc, char **argv) {
                 }
                 break;
             default: // handle positional arguments
-                                
+                
+                action = optarg;
+                
                 switch (tools.count(optarg) ? tools.at(optarg) : 0) {
                     case 1:
                         
-                        cmd = "GraphAligner/bin/GraphAligner" + getArgs(optarg, argc, argv);;
+                        cmd = "GraphAligner/bin/GraphAligner" + getArgs(optarg, argc, argv);
                         
                         std::cout<<"Invoking: "<<cmd<<std::endl;
-                        
                         std::system(cmd.c_str());
                         
                         arguments = false;
+                        
+                        break;
+                    case 2:
+                        
+                        cmd = getArgs(optarg, argc, argv);
                         
                         break;
                         
@@ -77,6 +138,54 @@ int main(int argc, char **argv) {
 //                if (strcmp(long_options[option_index].name,"line-length") == 0)
 //                  splitLength = atoi(optarg);
                 
+                break;
+                
+            case 'f': // input sequence
+                
+                if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
+                
+                    userInput.pipeType = 'f'; // pipe input is a sequence
+                
+                }else{ // input is a regular file
+                    
+                    ifFileExists(optarg);
+                    userInput.iSeqFileArg = optarg;
+                    stats_flag = true;
+                    
+                }
+                    
+                break;
+
+            case 'g': // input reads
+                
+                if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
+                
+                    userInput.pipeType = 'g'; // pipe input is a sequence
+                
+                }else{ // input is a regular file
+                    
+                    ifFileExists(optarg);
+                    userInput.iAlignFileArg = optarg;
+                    stats_flag = true;
+                    
+                }
+                    
+                break;
+                
+            case 'r': // input reads
+                
+                if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
+                
+                    userInput.pipeType = 'r'; // pipe input is a sequence
+                
+                }else{ // input is a regular file
+                    
+                    ifFileExists(optarg);
+                    userInput.iReadFileArg = optarg;
+                    stats_flag = true;
+                    
+                }
+                    
                 break;
                 
             case 'v': // software version
@@ -105,6 +214,13 @@ int main(int argc, char **argv) {
             printf("%s ", argv[arg_counter]);
         }
         printf("\n");
+        
+    }
+    
+    if (tools.at(action) == 2){
+        
+        lg.verbose("Evaluating assembly: " + userInput.iSeqFileArg);
+        lg.verbose("Using: " + userInput.iAlignFileArg);
         
     }
     

@@ -1,5 +1,5 @@
 CXX = g++
-INCLUDE_DIR = -I./include
+INCLUDE_DIR = -I./include -I../gfastats/include
 WARNINGS = -Wall -Wextra
 
 CXXFLAGS = -g -std=gnu++14 -O3 $(INCLUDE_DIR) $(WARNINGS)
@@ -8,8 +8,10 @@ TARGET = gfalign
 BUILD = build/bin
 SOURCE = src
 INCLUDE = include
+BINDIR := $(BUILD)/.o
 
 GA_SUBDIR := $(CURDIR)/GraphAligner
+GFASTATS_SUBDIR := $(CURDIR)/../gfastats
 LDFLAGS :=
 
 ifeq (,$(shell which conda))
@@ -34,12 +36,22 @@ else
 endif
 
 GA_LIBSFILES := $(GA_SUBDIR)/$(SOURCE)/* $(GA_SUBDIR)/$(INCLUDE)/*
+GFALIGN_LIBSFILES := main
 
-main: $(SOURCE)/main.cpp $(GA_LIBSFILES) | $(BUILD)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(SOURCE)/main.cpp -o $(BUILD)/$(TARGET)
+OBJS := stream-obj bed struct log functions
+BINS := $(addprefix $(BINDIR)/, $(OBJS))
+
+head: $(GFASTATS_SUBDIR)/$(INCLUDE)/threadpool.h $(BINS) $(INCLUDE)/$(GFALIGN_LIBSFILES)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(BUILD)/$(TARGET) $(wildcard $(BINDIR)/*) $(LIBS)
+
+$(INCLUDE)/%: $(INCLUDE)/%.h
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -c $(SOURCE)/$(notdir $@).cpp -o $(BINDIR)/$(notdir $@)
 
 $(GA_LIBSFILES): GraphAligner
 	@# Do nothing
+	
+$(BINDIR)%: $(GFASTATS_SUBDIR)/$(SOURCE)/%.cpp $(GFASTATS_SUBDIR)/$(INCLUDE)/%.h | $(BINDIR)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -c $(GFASTATS_SUBDIR)/$(SOURCE)/$(notdir $@).cpp -o $@
 
 .PHONY: GraphAligner
 GraphAligner:
@@ -64,6 +76,9 @@ endif
 	. activate GraphAligner && $(MAKE) -j -C $(GA_SUBDIR)
 	
 $(BUILD):
+	-mkdir -p $@
+	
+$(BINDIR):
 	-mkdir -p $@
 	
 clean:
