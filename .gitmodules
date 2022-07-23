@@ -1,0 +1,3 @@
+[submodule "GraphAligner"]
+	path = GraphAligner
+	url = https://github.com/maickrau/GraphAligner.git
