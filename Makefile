@@ -21,6 +21,18 @@ else
     CONDA_ACTIVATE=source $$(conda info --base)/etc/profile.d/conda.sh ; conda activate ; conda activate
 endif
 
+OSF :=
+ifeq ($(OS),Windows_NT)
+	OSF += WIN32
+else
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		OSF = LINUX
+	else ifeq ($(UNAME_S),Darwin)
+		OSF = OSX
+	endif
+endif
+
 GA_LIBSFILES := $(GA_SUBDIR)/$(SOURCE)/* $(GA_SUBDIR)/$(INCLUDE)/*
 
 main: $(SOURCE)/main.cpp $(GA_LIBSFILES) | $(BUILD)
@@ -34,15 +46,22 @@ GraphAligner:
 ifeq (True,$(HAS_CONDA))
 ifneq ("$(wildcard $(MY_ENV_DIR))","")
 	@echo ">>> Found GraphAligner environment in $(MY_ENV_DIR). Skipping installation..."
-	. activate GraphAligner && $(MAKE) -j -C $(GA_SUBDIR)
 else
 	@echo ">>> Detected conda, but $(CONDA_ENV_NAME) is missing in $(ENV_DIR). Installing ..."
+ifeq ($(OSF),LINUX)
+	conda env create -f $(GA_SUBDIR)/CondaEnvironment_linux.yml
+else ifeq ($(OSF),OSX)
 	conda env create -f $(GA_SUBDIR)/CondaEnvironment_osx.yml
+else
+	@echo ">>> OS $(OSF) not supported by GraphAligner ..."
+	exit
+endif
 endif
 else
 	@echo ">>> Install conda first."
     exit
 endif
+	. activate GraphAligner && $(MAKE) -j -C $(GA_SUBDIR)
 	
 $(BUILD):
 	-mkdir -p $@
