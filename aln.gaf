@@ -1,2 +1,2 @@
 read1	171	0	171	+	>11<12>13	171	0	171	171	171	60	NM:i:0	AS:f:171	dv:f:0	id:f:1	cg:Z:171=
-read2 =read1 with 10 mutations	171	0	171	+	>11<12>13	171	0	171	164	171	60	NM:i:7	AS:f:150.42	dv:f:0.0409357	id:f:0.959064	cg:Z:4=1X11=1X31=1X19=1X31=1X58=1X2=1X8=
+read2 =read1 with 8 mutations (lowercase), of which 1 is retromutation	171	0	171	+	>11<12>13	171	0	171	164	171	60	NM:i:7	AS:f:150.42	dv:f:0.0409357	id:f:0.959064	cg:Z:4=1X11=1X31=1X19=1X31=1X58=1X2=1X8=

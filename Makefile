@@ -38,15 +38,17 @@ else
 endif
 
 GA_LIBSFILES := $(GA_SUBDIR)/$(SOURCE)/* $(GA_SUBDIR)/$(INCLUDE)/*
-GFALIGN_LIBSFILES := main
+
+GFALIGN_OBJS := main alignments input
+GFALIGN_BINS := $(addprefix $(BINDIR)/, $(GFALIGN_OBJS))
 
 OBJS := stream-obj bed struct log functions
 BINS := $(addprefix $(BINDIR)/, $(OBJS))
 
-head: $(GFASTATS_SUBDIR)/$(INCLUDE)/threadpool.h $(BINS) $(INCLUDE)/$(GFALIGN_LIBSFILES)
+head: $(GFASTATS_SUBDIR)/$(INCLUDE)/threadpool.h $(BINS) $(GFALIGN_BINS)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(BUILD)/$(TARGET) $(wildcard $(BINDIR)/*) $(LIBS)
 
-$(INCLUDE)/%: $(INCLUDE)/%.h
+$(BINDIR)%: $(SOURCE)/%.cpp $(INCLUDE)/%.h
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -c $(SOURCE)/$(notdir $@).cpp -o $(BINDIR)/$(notdir $@)
 
 $(GA_LIBSFILES): GraphAligner

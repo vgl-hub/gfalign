@@ -2,7 +2,7 @@
 CCGTTCCATGAAGGCCAGAGTTACTTACCGGCCCTTTCCATGCGCGCGCCAAAATTCTCTCACGAGGAGAGAGTGAGATCGTGCAATCCTCCGTTAACATATTCTTAAATCGCATAGCTATGTATTTTGCAGAGGTAGCGACATCTTGACGGGCACTTCACAGATAGTGGG
 +
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@read2 =read1 with 8 mutations (lowercase), of which 1 is retromutation
+@read2 =read1 with 7 mutations (lowercase)
 CCGTcCCATGAAGGCCgGAGTTACTTACCGGCCCTTTCCATGCGCGCGaCAAAATTCTCTCACGAGGAtAGAGTGAGATCGTGCAATCCTCcGTTAACATtTTCTTAAATCGCaTAGCTATGTATTTTGCAGAGGTAGCGACATCTTGACGGGCACTTCtCAaATAGTGGG
 +
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

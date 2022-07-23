@@ -2,12 +2,15 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string>
-#include <iostream>
 #include <unordered_map>
 #include <getopt.h>
 #include <vector>
 
+#include <iostream>
 #include <fstream>
+
+#include <parallel_hashmap/phmap.h>
+
 
 #include "bed.h"
 
@@ -23,6 +26,13 @@
 #include "struct.h"
 #include "stream-obj.h"
 
+#include "uid-generator.h"
+#include "gfa-lines.h"
+#include "gfa.h"
+
+#include "alignments.h"
+#include "input.h"
+
 #include <main.h>
 
 std::string version = "0.1";
@@ -34,6 +44,10 @@ short int tabular_flag;
 int cmd_flag;
 int verbose_flag;
 int stats_flag;
+int maxThreads = 0;
+
+std::mutex mtx;
+ThreadPool<std::function<void()>> threadPool;
 Log lg;
 
 
@@ -226,20 +240,17 @@ int main(int argc, char **argv) {
         lg.verbose("Evaluating assembly: " + userInput.iSeqFileArg);
         lg.verbose("Using: " + userInput.iAlignFileArg);
         
-        stream = streamObj.openStream(userInput, 'g');
+        InAlignments inAlignments; // initialize sequence collection object
         
-        lg.verbose("Created stream object for input assembly file");
-        lg.verbose("Detected stream type (" + streamObj.type() + ").\nStreaming started.");
+        lg.verbose("Alignment object generated");
         
-        if (stream) {
-                    
-            while (getline(*stream, newLine)) {
-                
-                std::cout<<newLine<<std::endl;
-                
-            }
-            
-        }
+        Input in;
+        
+        in.load(userInput); // load user input
+        
+//        in.read(inSequences); // read input content to inSequences container
+        
+        in.read(inAlignments); // read input content to inReads container
         
     }
     
