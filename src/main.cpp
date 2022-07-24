@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <getopt.h>
 #include <vector>
+#include <filesystem>
 
 #include <iostream>
 #include <fstream>
@@ -34,6 +35,8 @@
 #include "input.h"
 
 #include <main.h>
+
+namespace fs = std::filesystem;
 
 std::string version = "0.1";
 
@@ -131,7 +134,7 @@ int main(int argc, char **argv) {
                 switch (tools.count(optarg) ? tools.at(optarg) : 0) {
                     case 1:
                         
-                        cmd = "GraphAligner/bin/GraphAligner" + getArgs(optarg, argc, argv);
+                        cmd = fs::current_path().string() + "/GraphAligner/bin/GraphAligner" + getArgs(optarg, argc, argv);
                         
                         std::cout<<"Invoking: "<<cmd<<std::endl;
                         std::system(cmd.c_str());
