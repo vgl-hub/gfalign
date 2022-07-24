@@ -76,6 +76,9 @@ int main(int argc, char **argv) {
         {"input-alignment", required_argument, 0, 'g'},
         {"cmd", no_argument, &cmd_flag, 1},
         {"aligner", required_argument, 0, 'a'},
+        
+        {"threads", required_argument, 0, 'j'},
+        
         {"verbose", no_argument, &verbose_flag, 1},
         {"version", no_argument, 0, 'v'},
         {"help", no_argument, 0, 'h'},
@@ -92,7 +95,7 @@ int main(int argc, char **argv) {
         
         int option_index = 0;
         
-        c = getopt_long(argc, argv, "-:v:f:a:g:r:h",
+        c = getopt_long(argc, argv, "-:v:f:a:g:j:r:h",
                         long_options, &option_index);
         
         if (optind < argc && !isPipe) { // if pipe wasn't assigned already
@@ -184,6 +187,11 @@ int main(int argc, char **argv) {
                     
                 }
                     
+                break;
+                
+            case 'j': // max threads
+                maxThreads = atoi(optarg);
+                stats_flag = 1;
                 break;
                 
             case 'r': // input reads

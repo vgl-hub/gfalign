@@ -1,6 +1,13 @@
 #ifndef ALIGNMENTS_H
 #define ALIGNMENTS_H
 
+struct Alignments { // a collection of sequences
+    
+    std::vector<std::string*> alignments;
+    unsigned int batchN;
+    
+};
+
 class InAlignment{
     
     std::string qName;
@@ -24,8 +31,28 @@ public:
     InAlignment(std::vector<std::string> cols, std::vector<Tag> inTags, unsigned int pos);
     std::string print();
     
+    unsigned int getMatches();
+    unsigned int getBlockLen();
+    unsigned int getMapq();
+    
     friend class InAlignments;
     
+};
+
+struct Stats {
+    
+    unsigned int tmpMatches = 0;
+    unsigned int tmpBlockLen = 0;
+    unsigned int tmpMapq = 0;
+    
+    void add(InAlignment* alignment){
+        
+        tmpMatches += alignment->getMatches();
+        tmpBlockLen += alignment->getBlockLen();
+        tmpMapq += alignment->getMapq();
+        
+    }
+        
 };
 
 class InAlignments{
@@ -37,17 +64,19 @@ class InAlignments{
     
     unsigned int pos = 0;
     
-    unsigned int avgQual;
+    unsigned int totMatches = 0;
+    unsigned int totBlockLen = 0;
+    unsigned int totMapq = 0;
     
 public:
     
-    ~InAlignments();
+//    ~InAlignments();
     
     void load(UserInput userInput);
     
     void traverseInAlignments(Alignments* sequence);
     
-    InAlignment* traverseInAlignment(Log* threadLog, std::string* alignment, unsigned int pos);
+    InAlignment* traverseInAlignment(Log* threadLog, std::string* alignment, unsigned int pos, Stats* tmpStats);
     
     void appendAlignments(Alignments* alignmentBatch);
     
@@ -55,13 +84,17 @@ public:
     
     unsigned long long int getTotAlignments();
     
-    void computeStats();
+    void updateStats(Stats* tmpStats);
     
-    unsigned int getAvgQual();
+    double getAvgQual();
     
+    double getAvgMatches();
+    
+    double getAvgBlockLen();
     
     
 };
+
 
 #endif /* ALIGNMENTS_H */
 
