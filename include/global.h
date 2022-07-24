@@ -13,7 +13,11 @@
 //global time
 extern std::chrono::high_resolution_clock::time_point start;
 
+extern int hc_flag;
+extern int hc_cutoff;
 extern short int tabular_flag;
+extern int outBubbles_flag;
+extern int stats_flag;
 extern int verbose_flag;
 extern int maxThreads;
 

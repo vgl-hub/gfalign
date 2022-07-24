@@ -32,6 +32,7 @@
 
 #include "alignments.h"
 #include "input.h"
+#include "output.h"
 
 #include <main.h>
 
@@ -40,9 +41,12 @@ std::string version = "0.1";
 //global
 std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now(); // immediately start the clock when the program is run
 
+int hc_flag;
+int hc_cutoff;
 short int tabular_flag;
 int cmd_flag;
 int verbose_flag;
+int outBubbles_flag;
 int stats_flag;
 int maxThreads = 0;
 
@@ -58,6 +62,8 @@ int main(int argc, char **argv) {
     
     bool arguments = true;
     bool isPipe = false; // to check if input is from pipe
+    
+    unsigned long long int gSize = 0; // expected genome size, with 0 NG/LG* statistics are not computed
     
     UserInput userInput; // initialize input object
     
@@ -245,26 +251,41 @@ int main(int argc, char **argv) {
         std::shared_ptr<std::istream> stream;
         std::string newLine;
         
-        lg.verbose("Evaluating assembly: " + userInput.iSeqFileArg);
-        lg.verbose("Using: " + userInput.iAlignFileArg);
-        
-        InSequences inSequences; // initialize sequence collection object
-        
-        lg.verbose("Alignment object generated");
-        
-        InAlignments inAlignments; // initialize alignment collection object
-        
-        lg.verbose("Alignment object generated");
-        
         Input in;
         
         in.load(userInput); // load user input
         
-        in.read(inSequences); // read input content to inSequences container
+        lg.verbose("User input loaded");
         
-        in.read(inAlignments); // read input content to inAlignments container
+        if(userInput.iSeqFileArg != ""){
+            
+            lg.verbose("GFA: " + userInput.iSeqFileArg);
         
-        inAlignments.printStats();
+            InSequences inSequences; // initialize sequence collection object
+            
+            lg.verbose("Sequence object generated");
+            
+            in.read(inSequences); // read input content to inSequences container
+            
+            Report report;
+            
+            report.reportStats(inSequences, gSize);
+        
+        }
+        
+        if(userInput.iAlignFileArg != ""){
+            
+            lg.verbose("Alignment: " + userInput.iAlignFileArg);
+        
+            InAlignments inAlignments; // initialize alignment collection object
+            
+            lg.verbose("Alignment object generated");
+            
+            in.read(inAlignments); // read input content to inAlignments container
+            
+            inAlignments.printStats();
+            
+        }
         
     }
     

@@ -42,7 +42,7 @@ GA_LIBSFILES := $(GA_SUBDIR)/$(SOURCE)/* $(GA_SUBDIR)/$(INCLUDE)/*
 GFALIGN_OBJS := main alignments input
 GFALIGN_BINS := $(addprefix $(BINDIR)/, $(GFALIGN_OBJS))
 
-OBJS := stream-obj bed struct log functions input-gfa
+OBJS := stream-obj bed struct log functions input-gfa input-filters gfa gfa-lines uid-generator output
 BINS := $(addprefix $(BINDIR)/, $(OBJS))
 
 head: $(GFASTATS_SUBDIR)/$(INCLUDE)/threadpool.h $(BINS) $(GFALIGN_BINS) $(GA_LIBSFILES)

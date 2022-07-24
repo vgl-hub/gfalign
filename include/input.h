@@ -7,16 +7,11 @@ class Input {
     
     //intermediates
     std::string h;
-    char* c;
     
     // stream read variable definition
     std::string firstLine;
-    bool stopStream = false;
-    unsigned int pos = 0; // to keep track of the original order
     
     StreamObj streamObj;
-    
-    std::string* alignment;
     
     std::shared_ptr<std::istream> stream;
     

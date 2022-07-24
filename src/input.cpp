@@ -22,7 +22,6 @@
 #include "uid-generator.h"
 
 #include "gfa-lines.h"
-#include "reads.h"
 
 #include "threadpool.h"
 #include "gfa.h"
@@ -37,6 +36,8 @@
 
 #include "alignments.h"
 
+#include "input-filters.h"
+#include "input-gfa.h"
 #include "input.h"
 
 void Input::load(UserInput userInput) {
@@ -68,6 +69,8 @@ void Input::read(InSequences& inSequences) {
     if (userInput.iAlignFileArg.empty()) {return;}
         
     threadPool.init(maxThreads); // initialize threadpool
+    
+    stream = streamObj.openStream(userInput, 'f');
     
     readGFA(inSequences, userInput, stream);
     
