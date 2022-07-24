@@ -45,7 +45,7 @@ GFALIGN_BINS := $(addprefix $(BINDIR)/, $(GFALIGN_OBJS))
 OBJS := stream-obj bed struct log functions
 BINS := $(addprefix $(BINDIR)/, $(OBJS))
 
-head: $(GFASTATS_SUBDIR)/$(INCLUDE)/threadpool.h $(BINS) $(GFALIGN_BINS)
+head: $(GFASTATS_SUBDIR)/$(INCLUDE)/threadpool.h $(BINS) $(GFALIGN_BINS) $(GA_LIBSFILES)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(BUILD)/$(TARGET) $(wildcard $(BINDIR)/*) $(LIBS)
 
 $(BINDIR)%: $(SOURCE)/%.cpp $(INCLUDE)/%.h
