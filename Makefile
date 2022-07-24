@@ -1,5 +1,5 @@
 CXX = g++
-INCLUDE_DIR = -I./include -I../gfastats/include
+INCLUDE_DIR = -I./include -Igfastats/include
 WARNINGS = -Wall -Wextra
 
 CXXFLAGS = -g -std=gnu++14 -O3 $(INCLUDE_DIR) $(WARNINGS)
