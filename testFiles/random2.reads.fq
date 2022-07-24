@@ -6,3 +6,23 @@ CCGTTCCATGAAGGCCAGAGTTACTTACCGGCCCTTTCCATGCGCGCGCCAAAATTCTCTCACGAGGAGAGAGTGAGATC
 CCGTcCCATGAAGGCCgGAGTTACTTACCGGCCCTTTCCATGCGCGCGaCAAAATTCTCTCACGAGGAtAGAGTGAGATCGTGCAATCCTCcGTTAACATtTTCTTAAATCGCaTAGCTATGTATTTTGCAGAGGTAGCGACATCTTGACGGGCACTTCtCAaATAGTGGG
 +
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@read3 =read1 random substring
+CCAGAGTTACTTACCGGCCCTTTCCATGCGCGCGCCAAAATTC
++
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@read4 =read1 random substring
+TCGTGCAATCCTCCGTTAACATATTCTTAAATCGCATAGCTATGTATTTTGCAGAGGTAGC
++
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@read5 =read1 random substring
+TATTCTTAAATCGCATAGCTATGTATTTTGCAGAGGTAGCGACATCTTGACGGGCACTTCAC
++
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@read6 =read1 random substring
+CGTTCCATGAAGGCCAGAGTTACTTACCGGCCCTTTCCATGCGCGCGCCAAAATTCTCTCACGAGGAGAGAGTGAGATCGTGCAATCCTCCGTTAACATATTCTTAAATCGCATAGCTATGT
++
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@read7 =read1 random substring
+GAGAGAGTGAGATCGTGCAATCCTCCGTTAACATATTCTTAAA
++
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
