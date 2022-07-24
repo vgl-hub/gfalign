@@ -14,7 +14,7 @@ GA_SUBDIR := $(CURDIR)/GraphAligner
 GFASTATS_SUBDIR := $(CURDIR)/gfastats
 
 LIBS = -lz
-LDFLAGS :=
+LDFLAGS= -pthread
 
 ifeq (,$(shell which conda))
     HAS_CONDA=False
