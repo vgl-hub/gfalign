@@ -5,6 +5,7 @@
 #include <chrono>
 #include <queue>
 #include <thread>
+#include <functional>
 
 #include "log.h"
 #include "threadpool.h"
