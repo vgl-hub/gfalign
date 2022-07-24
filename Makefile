@@ -2,7 +2,7 @@ CXX = g++
 INCLUDE_DIR = -I./include -Igfastats/include
 WARNINGS = -Wall -Wextra
 
-CXXFLAGS = -g --std=c++17 -O3 $(INCLUDE_DIR) $(WARNINGS)
+CXXFLAGS = -g --std=c++14 -O3 $(INCLUDE_DIR) $(WARNINGS)
 
 TARGET = gfalign
 BUILD = build/bin
@@ -78,6 +78,7 @@ else
     exit
 endif
 	. activate GraphAligner && $(MAKE) -j -C $(GA_SUBDIR)
+	mv GraphAligner/bin/* build/bin
 	
 $(BUILD):
 	-mkdir -p $@
