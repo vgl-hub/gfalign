@@ -248,7 +248,11 @@ int main(int argc, char **argv) {
         lg.verbose("Evaluating assembly: " + userInput.iSeqFileArg);
         lg.verbose("Using: " + userInput.iAlignFileArg);
         
-        InAlignments inAlignments; // initialize sequence collection object
+        InSequences inSequences; // initialize sequence collection object
+        
+        lg.verbose("Alignment object generated");
+        
+        InAlignments inAlignments; // initialize alignment collection object
         
         lg.verbose("Alignment object generated");
         
@@ -256,7 +260,7 @@ int main(int argc, char **argv) {
         
         in.load(userInput); // load user input
         
-//        in.read(inSequences); // read input content to inSequences container
+        in.read(inSequences); // read input content to inSequences container
         
         in.read(inAlignments); // read input content to inAlignments container
         

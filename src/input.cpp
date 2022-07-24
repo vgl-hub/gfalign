@@ -62,3 +62,21 @@ void Input::read(InAlignments& inAlignments) {
     }
 
 }
+
+void Input::read(InSequences& inSequences) {
+    
+    if (userInput.iAlignFileArg.empty()) {return;}
+        
+    threadPool.init(maxThreads); // initialize threadpool
+    
+    readGFA(inSequences, userInput, stream);
+    
+    while (true) {
+        
+        if (threadPool.empty()) {threadPool.join(); break;}
+        lg.verbose("Remaining jobs: " + std::to_string(threadPool.queueSize()), true);
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        
+    }
+
+}
