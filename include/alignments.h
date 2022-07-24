@@ -15,12 +15,16 @@ class InAlignment{
     unsigned int matches;
     unsigned int blockLen;
     unsigned int mapq;
+    std::vector<Tag> inTags;
+    
     unsigned int pos;
 
 public:
     
-    InAlignment(std::vector<std::string> cols, unsigned int pos);
+    InAlignment(std::vector<std::string> cols, std::vector<Tag> inTags, unsigned int pos);
     std::string print();
+    
+    friend class InAlignments;
     
 };
 
@@ -31,7 +35,9 @@ class InAlignments{
     UserInput userInput;
     std::vector<InAlignment*> inAlignments;
     
-    unsigned int pos = 0; // to keep track of the original order
+    unsigned int pos = 0;
+    
+    unsigned int avgQual;
     
 public:
     
@@ -45,15 +51,15 @@ public:
     
     void appendAlignments(Alignments* alignmentBatch);
     
-    unsigned long long int getTotReadLen();
+    void printStats();
     
-    double computeAvgReadLen();
+    unsigned long long int getTotAlignments();
     
-    unsigned long long int getReadN50();
+    void computeStats();
     
-    void report();
+    unsigned int getAvgQual();
     
-    void evalNstars();
+    
     
 };
 

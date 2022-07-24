@@ -24,7 +24,7 @@
 
 #include "alignments.h"
 
-InAlignment::InAlignment(std::vector<std::string> cols, unsigned int pos) {
+InAlignment::InAlignment(std::vector<std::string> cols, std::vector<Tag> inTags, unsigned int pos) {
     
     this->qName = cols[0];
     this->qLen = stoi(cols[1]);
@@ -38,13 +38,15 @@ InAlignment::InAlignment(std::vector<std::string> cols, unsigned int pos) {
     this->matches = stoi(cols[9]);
     this->blockLen = stoi(cols[10]);
     this->mapq = stoi(cols[11]);
+    this->inTags = inTags;
+    
     this->pos = pos;
 
 }
 
 std::string InAlignment::print() {
     
-    return
+    std::string alignment =
     qName + "\t" +
     std::to_string(qLen) + "\t" +
     std::to_string(qStart) + "\t" +
@@ -56,8 +58,17 @@ std::string InAlignment::print() {
     std::to_string(pEnd) + "\t" +
     std::to_string(matches) + "\t" +
     std::to_string(blockLen) + "\t" +
-    std::to_string(mapq) + "\t" +
-    std::to_string(pos) + "\n";
+    std::to_string(mapq);
+    
+    for (Tag tag : inTags) {
+    
+        alignment += std::string("\t") + tag.label + std::string(":") + tag.type + std::string(":") + tag.content;
+        
+    }
+    
+    alignment += "\n";
+    
+    return alignment;
 
 }
 
@@ -176,74 +187,66 @@ void InAlignments::traverseInAlignments(Alignments* alignmentBatch) { // travers
 InAlignment* InAlignments::traverseInAlignment(Log* threadLog, std::string* alignment, unsigned int pos) { // traverse a single read
     
     std::vector<std::string> cols = readDelimited(*alignment, "\t");
+    
+    std::vector<Tag> inTags;
+    
+    std::vector<std::string> tagValues;
+    
+    Tag tag;
+    
+    for (unsigned int i = 12; i < cols.size(); i++) {
+        
+        tagValues = readDelimited(cols[i], ":");
+        
+        tag.label[0] = tagValues[0][0];
+        tag.label[1] = tagValues[0][1];
+        tag.type = tagValues[1][0];
+        tag.content = tagValues[2];
+    
+        inTags.push_back(tag);
+    
+    }
 
-    InAlignment* inAlignment = new InAlignment(cols, pos);
+    InAlignment* inAlignment = new InAlignment(cols, inTags, pos);
     
     threadLog->verbose("Individual alignment read: " + cols[0]);
-    
-    std::cout<<inAlignment->print();
     
     return inAlignment;
     
 }
 
-//unsigned long long int InAlignments::getTotReadLen() {
-//    
-//    unsigned long long int totReadLen = 0;
-//    
-//    for (InSegment* read : inAlignments) {
-//        
-//        totReadLen += read->getA() + read->getC() + read->getG() + read->getT();
-//        
-//    }
-//    
-//    return totReadLen;
-//    
-//}
-//
-//double InAlignments::computeAvgReadLen() {
-//    
-//    return (double) getTotReadLen()/inAlignments.size();
-//    
-//}
-//
-//unsigned long long int InAlignments::getReadN50() {
-//    
-//    return readNstars[4];
-//    
-//}
-//
-//void InAlignments::evalNstars() {
-//
-//    std::vector<unsigned long long int> readLens;
-//
-//    for (InSegment* read : inAlignments) {
-//        
-//        readLens.push_back(read->getA() + read->getC() + read->getG() + read->getT());
-//
-//    }
-//
-//    computeNstars(readLens, readNstars, readLstars);
-//    
-//}
-//
-//void InAlignments::report() {
-//
-//    if (inAlignments.size() > 0) {
-//        
-//        if (!tabular_flag) {
-//        
-//            std::cout<<output("+++Read summary+++")<<"\n";
-//        
-//        }
-//        
-//        std::cout<<output("# alignments")<<inAlignments.size()<<"\n";
-//        std::cout<<output("Total read length")<<getTotReadLen()<<"\n";
-//        std::cout<<output("Average read length") << gfa_round(computeAvgReadLen()) << "\n";
-//        evalNstars(); // read N* statistics
-//        std::cout<<output("Read N50")<<getReadN50()<<"\n";
-//        
-//    }
-//    
-//}
+void InAlignments::printStats() {
 
+    std::cout<<output("# alignments")<<getTotAlignments()<<"\n";
+    
+    computeStats();
+    
+    std::cout<<output("Average alignment quality")<<getAvgQual()<<"\n";
+
+}
+
+void InAlignments::computeStats() {
+    
+    unsigned long long int totAlignments = inAlignments.size();
+    
+    for(InAlignment* alignment : inAlignments) {
+        
+        avgQual += alignment->mapq;
+        
+    }
+    
+    avgQual = avgQual / totAlignments;
+    
+}
+
+unsigned long long int InAlignments::getTotAlignments() {
+    
+    return inAlignments.size();
+    
+}
+
+unsigned int InAlignments::getAvgQual() {
+    
+    return avgQual;
+    
+}

@@ -250,7 +250,9 @@ int main(int argc, char **argv) {
         
 //        in.read(inSequences); // read input content to inSequences container
         
-        in.read(inAlignments); // read input content to inReads container
+        in.read(inAlignments); // read input content to inAlignments container
+        
+        inAlignments.printStats();
         
     }
     
