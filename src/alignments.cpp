@@ -244,6 +244,12 @@ InAlignment* InAlignments::traverseInAlignment(Log* threadLog, std::string* alig
 }
 
 void InAlignments::printStats() {
+    
+    if (!tabular_flag) {
+    
+        std::cout<<output("+++Alignment summary+++")<<"\n";
+    
+    }
 
     std::cout<<output("# alignments")<<getTotAlignments()<<"\n";
     std::cout<<output("Average alignment quality")<<gfa_round(getAvgQual())<<"\n";
