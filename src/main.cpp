@@ -51,7 +51,7 @@ int stats_flag;
 int maxThreads = 0;
 
 std::mutex mtx;
-ThreadPool<std::function<void()>> threadPool;
+ThreadPool<std::function<bool()>> threadPool;
 Log lg;
 
 
@@ -257,6 +257,8 @@ int main(int argc, char **argv) {
         
         lg.verbose("User input loaded");
         
+        threadPool.init(maxThreads); // initialize threadpool
+        
         if(userInput.iSeqFileArg != ""){
             
             lg.verbose("GFA: " + userInput.iSeqFileArg);
@@ -266,6 +268,8 @@ int main(int argc, char **argv) {
             lg.verbose("Sequence object generated");
             
             in.read(inSequences); // read input content to inSequences container
+            
+            jobWait(threadPool);
             
             Report report;
             
@@ -283,9 +287,13 @@ int main(int argc, char **argv) {
             
             in.read(inAlignments); // read input content to inAlignments container
             
+            jobWait(threadPool);
+            
             inAlignments.printStats();
             
         }
+        
+        threadPool.join(); // join threads
         
     }
     

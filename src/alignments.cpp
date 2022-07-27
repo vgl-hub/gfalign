@@ -172,7 +172,7 @@ void InAlignments::appendAlignments(Alignments* alignmentBatch) { // read a coll
     
 }
 
-void InAlignments::traverseInAlignments(Alignments* alignmentBatch) { // traverse the read
+bool InAlignments::traverseInAlignments(Alignments* alignmentBatch) { // traverse the read
 
     Log threadLog;
     
@@ -203,6 +203,8 @@ void InAlignments::traverseInAlignments(Alignments* alignmentBatch) { // travers
     logs.push_back(threadLog);
     
     lck.unlock();
+    
+    return true;
     
 }
 

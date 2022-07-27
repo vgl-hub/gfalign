@@ -74,7 +74,7 @@ public:
     
     void load(UserInput userInput);
     
-    void traverseInAlignments(Alignments* sequence);
+    bool traverseInAlignments(Alignments* sequence);
     
     InAlignment* traverseInAlignment(Log* threadLog, std::string* alignment, unsigned int pos, Stats* tmpStats);
     
