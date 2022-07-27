@@ -1,5 +1,5 @@
 CXX = g++
-INCLUDE_DIR = -I./include -Igfastats/include
+INCLUDE_DIR = -I./include -Igfalibs/include
 WARNINGS = -Wall -Wextra
 
 CXXFLAGS = -g --std=c++14 -O3 $(INCLUDE_DIR) $(WARNINGS)
@@ -11,7 +11,7 @@ INCLUDE = include
 BINDIR := $(BUILD)/.o
 
 GA_SUBDIR := $(CURDIR)/GraphAligner
-GFASTATS_SUBDIR := $(CURDIR)/gfastats
+GFALIBS_SUBDIR := $(CURDIR)/gfalibs
 
 LIBS = -lz
 LDFLAGS= -pthread
@@ -37,25 +37,28 @@ else
 	endif
 endif
 
+#GraphAligner
 GA_LIBSFILES := $(GA_SUBDIR)/$(SOURCE)/* $(GA_SUBDIR)/$(INCLUDE)/*
 
+#gfalign
 GFALIGN_OBJS := main alignments input
 GFALIGN_BINS := $(addprefix $(BINDIR)/, $(GFALIGN_OBJS))
 
-OBJS := stream-obj bed struct log functions input-gfa input-filters gfa gfa-lines uid-generator output
-BINS := $(addprefix $(BINDIR)/, $(OBJS))
+#gfalibs
+GFALIBS_DIR := $(CURDIR)/gfalibs
 
-head: $(GFASTATS_SUBDIR)/$(INCLUDE)/threadpool.h $(BINS) $(GFALIGN_BINS) $(GA_LIBSFILES)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(BUILD)/$(TARGET) $(wildcard $(BINDIR)/*) $(LIBS)
+head: $(GFALIGN_BINS) $(GA_LIBSFILES) gfalibs | $(BUILD)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(BUILD)/$(TARGET) $(wildcard $(BINDIR)/*) $(GFALIBS_DIR)/*.o $(LIBS)
 
-$(BINDIR)%: $(SOURCE)/%.cpp $(INCLUDE)/%.h
+$(BINDIR)%: $(SOURCE)/%.cpp $(INCLUDE)/%.h | $(BINDIR)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -c $(SOURCE)/$(notdir $@).cpp -o $(BINDIR)/$(notdir $@)
 
 $(GA_LIBSFILES): GraphAligner
 	@# Do nothing
-	
-$(BINDIR)%: $(GFASTATS_SUBDIR)/$(SOURCE)/%.cpp $(GFASTATS_SUBDIR)/$(INCLUDE)/%.h | $(BINDIR)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -c $(GFASTATS_SUBDIR)/$(SOURCE)/$(notdir $@).cpp -o $@
+
+.PHONY: gfalibs
+gfalibs:
+	$(MAKE) -j -C $(GFALIBS_DIR)
 
 .PHONY: GraphAligner
 GraphAligner:

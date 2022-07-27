@@ -36,7 +36,6 @@
 
 #include "alignments.h"
 
-#include "input-filters.h"
 #include "input-gfa.h"
 #include "input.h"
 

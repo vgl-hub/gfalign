@@ -1,6 +1,6 @@
 [submodule "GraphAligner"]
 	path = GraphAligner
 	url = https://github.com/maickrau/GraphAligner.git
-[submodule "gfastats"]
-	path = gfastats
-	url = https://github.com/vgl-hub/gfastats.git
+[submodule "gfalibs"]
+	path = gfalibs
+	url = https://github.com/vgl-hub/gfalibs.git
