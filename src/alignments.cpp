@@ -12,6 +12,8 @@
 #include <zstream/izstream.hpp>
 #include <zstream/izstream_impl.hpp>
 
+#include <parallel_hashmap/phmap.h>
+
 #include "log.h"
 #include "global.h"
 
@@ -287,5 +289,117 @@ double InAlignments::getAvgMatches() {
 double InAlignments::getAvgBlockLen() {
     
     return (double) totBlockLen/inAlignments.size();
+    
+}
+
+std::vector<InEdge> GAFpathToEdges(std::string path, phmap::flat_hash_map<std::string, unsigned int>* headersToIds) {
+
+    std::vector<InEdge> edges;
+    size_t pos = 0;
+    std::string sId1, sId2;
+    char sId1Or = '+', sId2Or = '+';
+    unsigned int counter = 0;
+
+    while (path.size() != 0) {
+        
+        if(path[pos] == '>' || path[pos] == '<' || pos == path.size()) {
+            
+            if (pos == 0) {
+                pos++;
+                continue;
+            }
+            
+            counter++;
+            
+            (counter == 1 ? sId1Or : sId2Or) = (path[0] == '>' ? '+' : '-');
+            
+            (counter == 1 ? sId1 : sId2) = path.substr(1, pos - 1);
+            
+            path.erase(0, pos);
+            
+            if (counter == 2) {
+                
+                InEdge edge;
+                
+                edge.newEdge(0, (*headersToIds)[sId1], (*headersToIds)[sId2], sId1Or, sId2Or);
+                
+                edges.push_back(edge);
+                
+                sId1Or = sId2Or;
+                sId1 = sId2;
+                
+                counter = 1;
+                
+            }
+            
+            pos = 0;
+            
+        }else{
+    
+            pos++;
+        
+        }
+            
+    }
+        
+    return edges;
+    
+}
+
+void InAlignments::buildEdgeGraph(phmap::flat_hash_map<std::string, unsigned int>* headersToIds, phmap::flat_hash_map<unsigned int, std::string>* idsToHeaders) { // graph constructor
+    
+    lg.verbose("Started edge graph construction from alignment");
+    
+    adjEdgeList.clear();
+    
+    adjEdgeList.resize(headersToIds->size()); // resize the adjaciency list to hold all nodes
+    
+    for (InAlignment* alignment : inAlignments) // search candidate edges in the alignment
+    {
+        
+        std::vector<InEdge> edges = GAFpathToEdges(alignment->path, headersToIds);
+        
+        for (auto &edge: edges) // add edges to the graph
+        {
+            
+            Edge fwEdge {edge.getsId1Or(), edge.getsId2(), edge.getsId2Or()};
+            
+            auto it = find(adjEdgeList.at(edge.getsId1()).begin(), adjEdgeList.at(edge.getsId1()).end(), fwEdge);
+            
+            if (it == adjEdgeList.at(edge.getsId1()).end()) {
+            
+                lg.verbose("Adding edge: " + (*idsToHeaders)[edge.getsId1()] + "(" + std::to_string(edge.getsId1()) + ") " + edge.getsId1Or() + " " + (*idsToHeaders)[edge.getsId2()] + "(" + std::to_string(edge.getsId2()) + ") " + edge.getsId2Or());
+
+                adjEdgeList.at(edge.getsId1()).push_back({edge.getsId1Or(), edge.getsId2(), edge.getsId2Or(), 1}); // insert at edge start gap destination and orientations
+
+                Edge rvEdge {edge.getsId2Or() == '+' ? '-' : '+', edge.getsId1(), edge.getsId1Or() == '+' ? '-' : '+', 1};
+
+                if (find(adjEdgeList.at(edge.getsId2()).begin(), adjEdgeList.at(edge.getsId2()).end(), rvEdge) == adjEdgeList.at(edge.getsId2()).end()) // add backward edge only if is not already present
+                    adjEdgeList.at(edge.getsId2()).push_back(rvEdge); // assembly are bidirected by definition
+            
+            }else{
+                
+                lg.verbose("Edge already present, increasing weight: " + (*idsToHeaders)[edge.getsId1()] + "(" + std::to_string(edge.getsId1()) + ") " + edge.getsId1Or() + " " + (*idsToHeaders)[edge.getsId2()] + "(" + std::to_string(edge.getsId2()) + ") " + edge.getsId2Or());
+                
+                it->weight++;
+                
+                Edge rvEdge {edge.getsId2Or() == '+' ? '-' : '+', edge.getsId1(), edge.getsId1Or() == '+' ? '-' : '+', 1};
+                
+                auto it2 = find(adjEdgeList.at(edge.getsId2()).begin(), adjEdgeList.at(edge.getsId2()).end(), rvEdge);
+                
+                it2->weight++;
+                
+            }
+            
+        }
+    }
+    
+    lg.verbose("Graph built");
+    
+}
+
+std::vector<std::vector<Edge>> InAlignments::getEdgeGraph() {
+    
+    return adjEdgeList;
     
 }

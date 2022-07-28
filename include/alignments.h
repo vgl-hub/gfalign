@@ -68,6 +68,11 @@ class InAlignments{
     unsigned int totBlockLen = 0;
     unsigned int totMapq = 0;
     
+    std::vector<std::vector<Edge>> adjEdgeList;
+    
+public:
+    void buildEdgeGraph(phmap::flat_hash_map<std::string, unsigned int>* headersToIds, phmap::flat_hash_map<unsigned int, std::string>* idsToHeaders);
+    
 public:
     
 //    ~InAlignments();
@@ -91,6 +96,8 @@ public:
     double getAvgMatches();
     
     double getAvgBlockLen();
+    
+    std::vector<std::vector<Edge>> getEdgeGraph();
     
     
 };

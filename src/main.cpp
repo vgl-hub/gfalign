@@ -31,6 +31,7 @@
 #include "gfa.h"
 
 #include "alignments.h"
+#include "eval.h"
 #include "input.h"
 #include "output.h"
 
@@ -48,6 +49,8 @@ int cmd_flag;
 int verbose_flag;
 int outBubbles_flag;
 int stats_flag;
+int discoverPaths_flag;
+int outFile_flag;
 int maxThreads = 0;
 
 std::mutex mtx;
@@ -69,6 +72,8 @@ int main(int argc, char **argv) {
     
     std::string action, aligner, cmd;
     
+    std::string outSeq = "gfa"; // default output type
+    
     if (argc == 1) { // gfastats with no arguments
             
         printf("gfalign [command]\n-h for additional help.\n");
@@ -82,7 +87,8 @@ int main(int argc, char **argv) {
         {"input-alignment", required_argument, 0, 'g'},
         {"cmd", no_argument, &cmd_flag, 1},
         {"aligner", required_argument, 0, 'a'},
-        
+        {"out-format", required_argument, 0, 'o'},
+
         {"threads", required_argument, 0, 'j'},
         
         {"verbose", no_argument, &verbose_flag, 1},
@@ -101,7 +107,7 @@ int main(int argc, char **argv) {
         
         int option_index = 0;
         
-        c = getopt_long(argc, argv, "-:v:f:a:g:j:r:h",
+        c = getopt_long(argc, argv, "-:v:f:a:g:j:o:r:h",
                         long_options, &option_index);
         
         if (optind < argc && !isPipe) { // if pipe wasn't assigned already
@@ -179,7 +185,7 @@ int main(int argc, char **argv) {
                     
                 break;
 
-            case 'g': // input reads
+            case 'g': // input alignment
                 
                 if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
                 
@@ -214,6 +220,10 @@ int main(int argc, char **argv) {
                     
                 }
                     
+                break;
+            case 'o': // handle output (file or stdout)
+                outSeq = optarg;
+                outFile_flag = 1;
                 break;
                 
             case 'v': // software version
@@ -259,11 +269,15 @@ int main(int argc, char **argv) {
         
         threadPool.init(maxThreads); // initialize threadpool
         
-        if(userInput.iSeqFileArg != ""){
-            
-            lg.verbose("GFA: " + userInput.iSeqFileArg);
+        lg.verbose("GFA: " + userInput.iSeqFileArg);
+    
+        InSequences inSequences; // initialize sequence collection object
         
-            InSequences inSequences; // initialize sequence collection object
+        InAlignments inAlignments; // initialize alignment collection object
+        
+        lg.verbose("Alignment object generated");
+        
+        if(userInput.iSeqFileArg != ""){
             
             lg.verbose("Sequence object generated");
             
@@ -280,10 +294,6 @@ int main(int argc, char **argv) {
         if(userInput.iAlignFileArg != ""){
             
             lg.verbose("Alignment: " + userInput.iAlignFileArg);
-        
-            InAlignments inAlignments; // initialize alignment collection object
-            
-            lg.verbose("Alignment object generated");
             
             in.read(inAlignments); // read input content to inAlignments container
             
@@ -294,6 +304,16 @@ int main(int argc, char **argv) {
         }
         
         threadPool.join(); // join threads
+        
+        if(userInput.iSeqFileArg != "" && userInput.iAlignFileArg != ""){
+            
+            evalGFA(inSequences, inAlignments);
+            
+            Report report;
+            
+            report.outFile(inSequences, outSeq);
+            
+        }
         
     }
     

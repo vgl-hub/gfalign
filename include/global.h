@@ -20,6 +20,8 @@ extern int outBubbles_flag;
 extern int stats_flag;
 extern int verbose_flag;
 extern int maxThreads;
+extern int discoverPaths_flag;
+extern int outFile_flag;
 
 extern std::mutex mtx;
 extern ThreadPool<std::function<bool()>> threadPool;

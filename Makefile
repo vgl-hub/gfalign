@@ -41,7 +41,7 @@ endif
 GA_LIBSFILES := $(GA_SUBDIR)/$(SOURCE)/* $(GA_SUBDIR)/$(INCLUDE)/*
 
 #gfalign
-GFALIGN_OBJS := main alignments input
+GFALIGN_OBJS := main alignments input eval
 GFALIGN_BINS := $(addprefix $(BINDIR)/, $(GFALIGN_OBJS))
 
 #gfalibs
@@ -50,8 +50,11 @@ GFALIBS_DIR := $(CURDIR)/gfalibs
 head: $(GFALIGN_BINS) $(GA_LIBSFILES) gfalibs | $(BUILD)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(BUILD)/$(TARGET) $(wildcard $(BINDIR)/*) $(GFALIBS_DIR)/*.o $(LIBS)
 
+$(GFALIGN_OBJS): %: $(BINDIR)/%
+	@
+
 $(BINDIR)%: $(SOURCE)/%.cpp $(INCLUDE)/%.h | $(BINDIR)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -c $(SOURCE)/$(notdir $@).cpp -o $(BINDIR)/$(notdir $@)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -c $(SOURCE)/$(notdir $@).cpp -o $@
 
 $(GA_LIBSFILES): GraphAligner
 	@# Do nothing
