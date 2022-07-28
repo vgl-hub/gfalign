@@ -1,2 +1,2 @@
-# gfastar
+# gfalign
 assembly graph tools
