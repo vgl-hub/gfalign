@@ -47,7 +47,9 @@ void evalGFA(InSequences& InSequences, InAlignments& InAlignments) {
             
             lg.verbose("Edge implied by read alignment (weight: " + std::to_string(it->weight) + ")");
             
-            edge.appendTag({'i', "RC", std::to_string(it->weight)});
+            Tag tag {'i', "RC", std::to_string(it->weight)};
+            
+            edge.appendTag(tag);
             
         }
         
