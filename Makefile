@@ -49,6 +49,10 @@ GFALIBS_DIR := $(CURDIR)/gfalibs
 
 head: $(GFALIGN_BINS) $(GA_LIBSFILES) gfalibs | $(BUILD)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(BUILD)/$(TARGET) $(wildcard $(BINDIR)/*) $(GFALIBS_DIR)/*.o $(LIBS)
+	
+debug: CXXFLAGS += -DDEBUG
+debug: CCFLAGS += -DDEBUG
+debug: head
 
 $(GFALIGN_OBJS): %: $(BINDIR)/%
 	@
@@ -61,7 +65,7 @@ $(GA_LIBSFILES): GraphAligner
 
 .PHONY: gfalibs
 gfalibs:
-	$(MAKE) -j -C $(GFALIBS_DIR)
+	$(MAKE) -j -C $(GFALIBS_DIR) CXXFLAGS="$(CXXFLAGS)"
 
 .PHONY: GraphAligner
 GraphAligner:
