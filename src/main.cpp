@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
     
     std::string action, aligner, cmd;
     
-    std::string outSeq = "gfa"; // default output type
+    userInput.outSequence = "gfa"; // default output type
     
     if (argc == 1) { // gfastats with no arguments
             
@@ -88,6 +88,7 @@ int main(int argc, char **argv) {
         {"cmd", no_argument, &cmd_flag, 1},
         {"aligner", required_argument, 0, 'a'},
         {"out-format", required_argument, 0, 'o'},
+        {"no-sequence", no_argument, &userInput.noSequence, 1},
 
         {"threads", required_argument, 0, 'j'},
         
@@ -222,7 +223,7 @@ int main(int argc, char **argv) {
                     
                 break;
             case 'o': // handle output (file or stdout)
-                outSeq = optarg;
+                userInput.outSequence = optarg;
                 outFile_flag = 1;
                 break;
                 
@@ -311,7 +312,11 @@ int main(int argc, char **argv) {
             
             Report report;
             
-            report.outFile(inSequences, outSeq);
+            if (outFile_flag) { // output sequences to file or stdout
+            
+                report.outFile(inSequences, userInput);
+                
+            }
             
         }
         

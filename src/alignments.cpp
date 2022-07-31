@@ -346,13 +346,13 @@ std::vector<InEdge> GAFpathToEdges(std::string path, phmap::flat_hash_map<std::s
     
 }
 
-void InAlignments::buildEdgeGraph(phmap::flat_hash_map<std::string, unsigned int>* headersToIds, phmap::flat_hash_map<unsigned int, std::string>* idsToHeaders) { // graph constructor
+void InAlignments::buildEdgeGraph(phmap::flat_hash_map<std::string, unsigned int>* headersToIds, phmap::flat_hash_map<unsigned int, std::string>* idsToHeaders, unsigned int uId) { // graph constructor
     
     lg.verbose("Started edge graph construction from alignment");
     
     adjEdgeList.clear();
     
-    adjEdgeList.resize(headersToIds->size()); // resize the adjaciency list to hold all nodes
+    adjEdgeList.resize(uId); // resize the adjaciency list to hold all nodes
     
     for (InAlignment* alignment : inAlignments) // search candidate edges in the alignment
     {

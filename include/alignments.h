@@ -71,7 +71,7 @@ class InAlignments{
     std::vector<std::vector<Edge>> adjEdgeList;
     
 public:
-    void buildEdgeGraph(phmap::flat_hash_map<std::string, unsigned int>* headersToIds, phmap::flat_hash_map<unsigned int, std::string>* idsToHeaders);
+    void buildEdgeGraph(phmap::flat_hash_map<std::string, unsigned int>* headersToIds, phmap::flat_hash_map<unsigned int, std::string>* idsToHeaders, unsigned int uId);
     
 public:
     

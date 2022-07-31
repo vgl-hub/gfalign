@@ -53,7 +53,7 @@ head: $(GFALIGN_BINS) $(GA_LIBSFILES) gfalibs | $(BUILD)
 $(GFALIGN_OBJS): %: $(BINDIR)/%
 	@
 
-$(BINDIR)%: $(SOURCE)/%.cpp $(INCLUDE)/%.h | $(BINDIR)
+$(BINDIR)%: $(SOURCE)/%.cpp $(INCLUDE)/%.h $(CURDIR)/gfalibs/include/*.h | $(BINDIR)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -c $(SOURCE)/$(notdir $@).cpp -o $@
 
 $(GA_LIBSFILES): GraphAligner

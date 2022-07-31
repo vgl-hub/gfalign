@@ -55,7 +55,7 @@ void Input::read(InAlignments& inAlignments) {
 
 void Input::read(InSequences& inSequences) {
     
-    if (userInput.iAlignFileArg.empty()) {return;}
+    if (userInput.iSeqFileArg.empty()) {return;}
     
     stream = streamObj.openStream(userInput, 'f');
     
