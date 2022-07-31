@@ -304,7 +304,7 @@ int main(int argc, char **argv) {
             
         }
         
-        threadPool.join(); // join threads
+        threadPool.join();
         
         if(userInput.iSeqFileArg != "" && userInput.iAlignFileArg != ""){
             
