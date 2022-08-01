@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <getopt.h>
 #include <vector>
+#include <map>
 
 #include <iostream>
 #include <fstream>
@@ -70,7 +71,7 @@ int main(int argc, char **argv) {
     
     UserInput userInput; // initialize input object
     
-    std::string action, aligner, cmd;
+    std::string action, aligner = "GraphAligner", preset_type, preset = "-x vg", cmd;
     
     userInput.outSequence = "gfa"; // default output type
     
@@ -86,7 +87,7 @@ int main(int argc, char **argv) {
         {"input-reads", required_argument, 0, 'r'},
         {"input-alignment", required_argument, 0, 'g'},
         {"cmd", no_argument, &cmd_flag, 1},
-        {"aligner", required_argument, 0, 'a'},
+        {"preset", required_argument, 0, 'p'},
         {"out-format", required_argument, 0, 'o'},
         {"no-sequence", no_argument, &userInput.noSequence, 1},
 
@@ -108,7 +109,7 @@ int main(int argc, char **argv) {
         
         int option_index = 0;
         
-        c = getopt_long(argc, argv, "-:v:f:a:g:j:o:r:h",
+        c = getopt_long(argc, argv, "-:v:f:p:g:j:o:r:h",
                         long_options, &option_index);
         
         if (optind < argc && !isPipe) { // if pipe wasn't assigned already
@@ -131,8 +132,9 @@ int main(int argc, char **argv) {
         switch (c) {
             case ':': // handle options without arguments
                 switch (optopt) { // the command line option last matched
-                    case 'a':
+                    case 'p':
                         aligner = "GraphAligner";
+                        preset = " --seeds-mxm-length 1000 --min-alignment-score 1000 --precise-clipping 0.75";
                         break;
                         
                     default:
@@ -147,7 +149,7 @@ int main(int argc, char **argv) {
                 switch (tools.count(optarg) ? tools.at(optarg) : 0) {
                     case 1:
                         
-                        cmd = "GraphAligner" + getArgs(optarg, argc, argv);
+                        cmd = aligner + getArgs(optarg, argc, argv) + preset;
                         
                         std::cout<<"Invoking: "<<cmd<<std::endl;
                         std::system(cmd.c_str());
@@ -169,6 +171,28 @@ int main(int argc, char **argv) {
 //                  splitLength = atoi(optarg);
                 
                 break;
+                
+            case 'p': // presets
+            {
+                const std::map<std::string, std::vector<std::string>> presets {
+                    {"HiFi", {"GraphAligner", " -x vg"}},
+                    {"CLR", {"GraphAligner", " -x vg --seeds-mxm-length 1000 --min-alignment-score 1000 --precise-clipping 0.75"}}
+                };
+                
+                if (presets.find(optarg) != presets.end()){
+
+                    aligner = presets.at(optarg)[0];
+                    preset = presets.at(optarg)[1];
+                    
+                }else{
+                    
+                    std::cout<<"Could not find preset: "<<optarg<<std::endl;
+                    exit(1);
+                
+                }
+                
+                break;
+            }
                 
             case 'f': // input sequence
                 
