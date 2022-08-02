@@ -52,6 +52,7 @@ int outBubbles_flag;
 int stats_flag;
 int discoverPaths_flag;
 int outFile_flag;
+int sortAlignment_flag;
 int maxThreads = 0;
 
 std::mutex mtx;
@@ -90,6 +91,7 @@ int main(int argc, char **argv) {
         {"preset", required_argument, 0, 'p'},
         {"out-format", required_argument, 0, 'o'},
         {"no-sequence", no_argument, &userInput.noSequence, 1},
+        {"sort-alignment", no_argument, &sortAlignment_flag, 1},
 
         {"threads", required_argument, 0, 'j'},
         
@@ -332,7 +334,15 @@ int main(int argc, char **argv) {
             
             inAlignments.markDuplicates();
             
-            inAlignments.printStats();
+            if(!sortAlignment_flag){
+            
+                inAlignments.printStats();
+            
+            }else{
+                
+                inAlignments.outAlignments();
+                
+            }
             
         }
         

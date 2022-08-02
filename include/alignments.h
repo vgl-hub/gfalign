@@ -100,7 +100,7 @@ public:
     
     void markDuplicates();
     
-    void outAlignment();
+    void outAlignments();
     
     std::vector<std::vector<Edge>> getEdgeGraph();
     

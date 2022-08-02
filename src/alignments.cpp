@@ -285,7 +285,7 @@ void InAlignments::sortAlignmentsByNameAscending(){
     
 }
 
-void InAlignments::outAlignment(){
+void InAlignments::outAlignments(){
     
     for(InAlignment* alignment : inAlignments) {
         
