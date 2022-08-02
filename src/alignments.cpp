@@ -74,24 +74,6 @@ std::string InAlignment::print() {
 
 }
 
-unsigned int InAlignment::getMatches() {
-    
-    return matches;
-    
-}
-
-unsigned int InAlignment::getBlockLen() {
-    
-    return blockLen;
-    
-}
-
-unsigned int InAlignment::getMapq() {
-    
-    return mapq;
-    
-}
-
 //InAlignments::~InAlignments()
 //{
 //
@@ -182,7 +164,7 @@ bool InAlignments::traverseInAlignments(Alignments* alignmentBatch) { // travers
     
     std::vector<InAlignment*> inAlignmentsBatch;
     
-    Stats tmpStats;
+    AlignmentStats tmpStats;
     
     unsigned int readN = 0;
     
@@ -210,7 +192,7 @@ bool InAlignments::traverseInAlignments(Alignments* alignmentBatch) { // travers
     
 }
 
-InAlignment* InAlignments::traverseInAlignment(Log* threadLog, std::string* alignment, unsigned int pos, Stats* tmpStats) { // traverse a single read
+InAlignment* InAlignments::traverseInAlignment(Log* threadLog, std::string* alignment, unsigned int pos, AlignmentStats* tmpStats) { // traverse a single read
     
     std::vector<std::string> cols = readDelimited(*alignment, "\t");
     
@@ -245,6 +227,31 @@ InAlignment* InAlignments::traverseInAlignment(Log* threadLog, std::string* alig
     
 }
 
+void AlignmentStats::add(InAlignment* alignment){
+    
+    tmpQLen += alignment->qLen;
+    tmpAlgSeq += alignment->qEnd - alignment->qStart;
+    alignment->strand == '+' ? ++plus : ++minus;
+    tmpPLen += alignment->pLen;
+    tmpMatches += alignment->matches;
+    tmpBlockLen += alignment->blockLen;
+    tmpMapq += alignment->mapq;
+    
+}
+
+void InAlignments::updateStats(AlignmentStats* tmpStats) {
+    
+    totQLen += tmpStats->tmpQLen;
+    totAlgSeq += tmpStats->tmpAlgSeq;
+    totPlus += tmpStats->plus;
+    totMinus += tmpStats->minus;
+    totPLen += tmpStats->tmpPLen;
+    totMatches += tmpStats->tmpMatches;
+    totBlockLen += tmpStats->tmpBlockLen;
+    totMapq += tmpStats->tmpMapq;
+    
+}
+
 void InAlignments::printStats() {
     
     if (!tabular_flag) {
@@ -253,42 +260,20 @@ void InAlignments::printStats() {
     
     }
 
-    std::cout<<output("# alignments")<<getTotAlignments()<<"\n";
-    std::cout<<output("Average alignment quality")<<gfa_round(getAvgQual())<<"\n";
-    std::cout<<output("Average matches #")<<gfa_round(getAvgMatches())<<"\n";
-    std::cout<<output("Average block length")<<gfa_round(getAvgBlockLen())<<"\n";
+    std::cout<<output("# alignments")<<inAlignments.size()<<"\n";
+    std::cout<<output("Average read length")<<gfa_round(computeAvg(totQLen))<<"\n";
+    std::cout<<output("Average aligned sequence")<<gfa_round(computeAvg(totAlgSeq))<<"\n";
+    std::cout<<output("Alignment orientation (+/-)")<<totPlus<<"("<<gfa_round((double) totPlus/(totPlus+totMinus)*100)<<"%):"<<totMinus<<"("<<gfa_round((double) totMinus/(totPlus+totMinus)*100)<<"%)"<<"\n";
+    std::cout<<output("Average path length")<<gfa_round(computeAvg(totPLen))<<"\n";
+    std::cout<<output("Average alignment quality")<<gfa_round(computeAvg(totMapq))<<"\n";
+    std::cout<<output("Average matches #")<<gfa_round(computeAvg(totMatches))<<"\n";
+    std::cout<<output("Average block length")<<gfa_round(computeAvg(totBlockLen))<<"\n";
 
 }
 
-void InAlignments::updateStats(Stats* tmpStats) {
+double InAlignments::computeAvg(long long unsigned int value) {
     
-    totMatches += tmpStats->tmpMatches;
-    totBlockLen += tmpStats->tmpBlockLen;
-    totMapq += tmpStats->tmpMapq;
-    
-}
-
-unsigned long long int InAlignments::getTotAlignments() {
-    
-    return inAlignments.size();
-    
-}
-
-double InAlignments::getAvgQual() {
-    
-    return (double) totMapq/inAlignments.size();
-    
-}
-
-double InAlignments::getAvgMatches() {
-    
-    return (double) totMatches/inAlignments.size();
-    
-}
-
-double InAlignments::getAvgBlockLen() {
-    
-    return (double) totBlockLen/inAlignments.size();
+    return (double) value/inAlignments.size();
     
 }
 

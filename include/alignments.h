@@ -31,27 +31,25 @@ public:
     InAlignment(std::vector<std::string> cols, std::vector<Tag> inTags, unsigned int pos);
     std::string print();
     
-    unsigned int getMatches();
-    unsigned int getBlockLen();
-    unsigned int getMapq();
-    
     friend class InAlignments;
+    friend class AlignmentStats;
     
 };
 
-struct Stats {
+class AlignmentStats {
     
-    unsigned int tmpMatches = 0;
-    unsigned int tmpBlockLen = 0;
-    unsigned int tmpMapq = 0;
+    long long unsigned int  tmpQLen = 0,
+                            tmpAlgSeq = 0, // total aligned sequence
+                            plus = 0, minus = 0,
+                            tmpPLen = 0,
+                            tmpMapq = 0,
+                            tmpMatches = 0,
+                            tmpBlockLen = 0;
+
+public:
+    void add(InAlignment* alignment);
     
-    void add(InAlignment* alignment){
-        
-        tmpMatches += alignment->getMatches();
-        tmpBlockLen += alignment->getBlockLen();
-        tmpMapq += alignment->getMapq();
-        
-    }
+    friend class InAlignments;
         
 };
 
@@ -64,9 +62,13 @@ class InAlignments{
     
     unsigned int pos = 0;
     
-    unsigned int totMatches = 0;
-    unsigned int totBlockLen = 0;
-    unsigned int totMapq = 0;
+    long long unsigned int  totQLen = 0,
+                            totAlgSeq = 0,
+                            totPlus = 0, totMinus = 0,
+                            totPLen = 0,
+                            totMapq = 0,
+                            totMatches = 0,
+                            totBlockLen = 0;
     
     std::vector<std::vector<Edge>> adjEdgeList;
     
@@ -81,7 +83,7 @@ public:
     
     bool traverseInAlignments(Alignments* sequence);
     
-    InAlignment* traverseInAlignment(Log* threadLog, std::string* alignment, unsigned int pos, Stats* tmpStats);
+    InAlignment* traverseInAlignment(Log* threadLog, std::string* alignment, unsigned int pos, AlignmentStats* tmpStats);
     
     void appendAlignments(Alignments* alignmentBatch);
     
@@ -89,13 +91,9 @@ public:
     
     unsigned long long int getTotAlignments();
     
-    void updateStats(Stats* tmpStats);
+    void updateStats(AlignmentStats* tmpStats);
     
-    double getAvgQual();
-    
-    double getAvgMatches();
-    
-    double getAvgBlockLen();
+    double computeAvg(long long unsigned int value);
     
     std::vector<std::vector<Edge>> getEdgeGraph();
     
