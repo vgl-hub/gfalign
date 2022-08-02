@@ -289,7 +289,7 @@ void InAlignments::outAlignments(){
     
     for(InAlignment* alignment : inAlignments) {
         
-        std::cout<<alignment->print()<<std::endl;
+        std::cout<<alignment->print();
         
     }
     
