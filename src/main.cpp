@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
     
     UserInput userInput; // initialize input object
     
-    std::string action, aligner = "GraphAligner", preset_type, preset = "-x vg", cmd;
+    std::string action, aligner = "GraphAligner", preset_type, preset = " -x vg", cmd;
     
     userInput.outSequence = "gfa"; // default output type
     
@@ -239,9 +239,13 @@ int main(int argc, char **argv) {
                 
                 }else{ // input is a regular file
                     
-                    ifFileExists(optarg);
-                    userInput.iReadFileArg = optarg;
-                    stats_flag = true;
+                    optind--;
+                    for( ;optind < argc && *argv[optind] != '-'; optind++){
+                        
+                        ifFileExists(argv[optind]);
+                        userInput.iReadFileArg.push_back(argv[optind]);
+                        
+                    }
                     
                 }
                     
@@ -323,6 +327,10 @@ int main(int argc, char **argv) {
             in.read(inAlignments); // read input content to inAlignments container
             
             jobWait(threadPool);
+            
+            inAlignments.sortAlignmentsByNameAscending();
+            
+            inAlignments.markDuplicates();
             
             inAlignments.printStats();
             

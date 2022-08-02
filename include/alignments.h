@@ -68,7 +68,8 @@ class InAlignments{
                             totPLen = 0,
                             totMapq = 0,
                             totMatches = 0,
-                            totBlockLen = 0;
+                            totBlockLen = 0,
+                            primaryAlignments = 0, secondaryAlignments = 0;
     
     std::vector<std::vector<Edge>> adjEdgeList;
     
@@ -77,7 +78,7 @@ public:
     
 public:
     
-//    ~InAlignments();
+    ~InAlignments();
     
     void load(UserInput userInput);
     
@@ -95,10 +96,18 @@ public:
     
     double computeAvg(long long unsigned int value);
     
+    void sortAlignmentsByNameAscending();
+    
+    void markDuplicates();
+    
+    void outAlignment();
+    
     std::vector<std::vector<Edge>> getEdgeGraph();
     
     
 };
+
+std::vector<InEdge> GAFpathToEdges(std::string path, phmap::flat_hash_map<std::string, unsigned int>* headersToIds);
 
 
 #endif /* ALIGNMENTS_H */

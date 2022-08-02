@@ -74,13 +74,13 @@ std::string InAlignment::print() {
 
 }
 
-//InAlignments::~InAlignments()
-//{
-//
-//    for (InSegment* p : inAlignments)
-//        delete p;
-//
-//}
+InAlignments::~InAlignments()
+{
+
+    for (InAlignment* p : inAlignments)
+        delete p;
+
+}
 
 void InAlignments::load(UserInput userInput) {
 
@@ -268,6 +268,8 @@ void InAlignments::printStats() {
     std::cout<<output("Average alignment quality")<<gfa_round(computeAvg(totMapq))<<"\n";
     std::cout<<output("Average matches #")<<gfa_round(computeAvg(totMatches))<<"\n";
     std::cout<<output("Average block length")<<gfa_round(computeAvg(totBlockLen))<<"\n";
+    std::cout<<output("Primary alignments")<<primaryAlignments<<"\n";
+    std::cout<<output("Secondary alignments")<<secondaryAlignments<<"\n";
 
 }
 
@@ -277,57 +279,36 @@ double InAlignments::computeAvg(long long unsigned int value) {
     
 }
 
-std::vector<InEdge> GAFpathToEdges(std::string path, phmap::flat_hash_map<std::string, unsigned int>* headersToIds) {
-
-    std::vector<InEdge> edges;
-    size_t pos = 0;
-    std::string sId1, sId2;
-    char sId1Or = '+', sId2Or = '+';
-    unsigned int counter = 0;
-
-    while (path.size() != 0) {
-        
-        if(path[pos] == '>' || path[pos] == '<' || pos == path.size()) {
-            
-            if (pos == 0) {
-                pos++;
-                continue;
-            }
-            
-            counter++;
-            
-            (counter == 1 ? sId1Or : sId2Or) = (path[0] == '>' ? '+' : '-');
-            
-            (counter == 1 ? sId1 : sId2) = path.substr(1, pos - 1);
-            
-            path.erase(0, pos);
-            
-            if (counter == 2) {
-                
-                InEdge edge;
-                
-                edge.newEdge(0, (*headersToIds)[sId1], (*headersToIds)[sId2], sId1Or, sId2Or);
-                
-                edges.push_back(edge);
-                
-                sId1Or = sId2Or;
-                sId1 = sId2;
-                
-                counter = 1;
-                
-            }
-            
-            pos = 0;
-            
-        }else{
+void InAlignments::sortAlignmentsByNameAscending(){
     
-            pos++;
+    sort(inAlignments.begin(), inAlignments.end(), [](InAlignment* one, InAlignment* two){return one->qName < two->qName;});
+    
+}
+
+void InAlignments::outAlignment(){
+    
+    for(InAlignment* alignment : inAlignments) {
         
-        }
-            
+        std::cout<<alignment->print()<<std::endl;
+        
     }
+    
+}
+
+void InAlignments::markDuplicates(){
+    
+    std::string prevQname;
+    
+    for(InAlignment* alignment : inAlignments) {
         
-    return edges;
+        if (alignment->qName == prevQname) {
+            ++secondaryAlignments;
+        }else{
+            ++primaryAlignments;
+            prevQname = alignment->qName;
+        }
+        
+    }
     
 }
 
@@ -386,5 +367,59 @@ void InAlignments::buildEdgeGraph(phmap::flat_hash_map<std::string, unsigned int
 std::vector<std::vector<Edge>> InAlignments::getEdgeGraph() {
     
     return adjEdgeList;
+    
+}
+
+std::vector<InEdge> GAFpathToEdges(std::string path, phmap::flat_hash_map<std::string, unsigned int>* headersToIds) {
+
+    std::vector<InEdge> edges;
+    size_t pos = 0;
+    std::string sId1, sId2;
+    char sId1Or = '+', sId2Or = '+';
+    unsigned int counter = 0;
+
+    while (path.size() != 0) {
+        
+        if(path[pos] == '>' || path[pos] == '<' || pos == path.size()) {
+            
+            if (pos == 0) {
+                pos++;
+                continue;
+            }
+            
+            counter++;
+            
+            (counter == 1 ? sId1Or : sId2Or) = (path[0] == '>' ? '+' : '-');
+            
+            (counter == 1 ? sId1 : sId2) = path.substr(1, pos - 1);
+            
+            path.erase(0, pos);
+            
+            if (counter == 2) {
+                
+                InEdge edge;
+                
+                edge.newEdge(0, (*headersToIds)[sId1], (*headersToIds)[sId2], sId1Or, sId2Or);
+                
+                edges.push_back(edge);
+                
+                sId1Or = sId2Or;
+                sId1 = sId2;
+                
+                counter = 1;
+                
+            }
+            
+            pos = 0;
+            
+        }else{
+    
+            pos++;
+        
+        }
+            
+    }
+        
+    return edges;
     
 }
