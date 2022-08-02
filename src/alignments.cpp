@@ -53,7 +53,7 @@ std::string InAlignment::print() {
     std::to_string(qLen) + "\t" +
     std::to_string(qStart) + "\t" +
     std::to_string(qEnd) + "\t" +
-    std::to_string(strand) + "\t" +
+    std::string(&strand, 1) + "\t" +
     path + "\t" +
     std::to_string(pLen) + "\t" +
     std::to_string(pStart) + "\t" +
