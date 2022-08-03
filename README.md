@@ -24,4 +24,4 @@ Or decorate the graph with information from the alignment:
 
 `gfalign eval -g aln.gaf -f testFiles/random2.gfa -o newGFA.gfa`
 
-To check out all tool and options available use `gfastar -h`.
+To check out all tool and options available use `gfalign -h`.
