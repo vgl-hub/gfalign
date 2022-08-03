@@ -76,9 +76,12 @@ int main(int argc, char **argv) {
     
     userInput.outSequence = "gfa"; // default output type
     
+    const char strHelp[] = "gfalign [options] [tool] [arguments]\n";
+    
     if (argc == 1) { // gfastats with no arguments
             
-        printf("gfalign [command]\n-h for additional help.\n");
+        printf("%s", strHelp);
+        printf("-h for additional help.\n");
         exit(0);
         
     }
@@ -263,8 +266,12 @@ int main(int argc, char **argv) {
                 exit(0);
                 
             case 'h': // help
-                printf("gfalign [command]\n");
+                printf("%s", strHelp);
+                printf("\nTools:\n");
+                printf("align\n");
+                printf("eval\n");
                 printf("\nOptions:\n");
+                printf("-p --preset alignment presets (currently supports: hifi|CLR).\n");
                 printf("-v --version software version.\n");
                 printf("--cmd print $0 to stdout.\n");
                 exit(0);
