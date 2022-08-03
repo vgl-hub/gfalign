@@ -177,7 +177,7 @@ int main(int argc, char **argv) {
             case 'p': // presets
             {
                 const std::map<std::string, std::vector<std::string>> presets {
-                    {"HiFi", {"GraphAligner", " -x vg"}},
+                    {"hifi", {"GraphAligner", " -x vg"}},
                     {"CLR", {"GraphAligner", " -x vg --seeds-mxm-length 1000 --min-alignment-score 1000 --precise-clipping 0.75"}}
                 };
                 
