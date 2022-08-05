@@ -270,6 +270,7 @@ void InAlignments::printStats() {
     std::cout<<output("Average block length")<<gfa_round(computeAvg(totBlockLen))<<"\n";
     std::cout<<output("Primary alignments")<<primaryAlignments<<"\n";
     std::cout<<output("Secondary alignments")<<secondaryAlignments<<"\n";
+    std::cout<<output("Supplementary alignments")<<supplementaryAlignments<<"\n";
 
 }
 
@@ -299,14 +300,46 @@ void InAlignments::markDuplicates(){
     
     std::string prevQname;
     
-    for(InAlignment* alignment : inAlignments) {
+    std::vector<InAlignment*> alignments;
+    
+    for(auto alignment = inAlignments.begin(); alignment != inAlignments.end(); ++alignment) {
         
-        if (alignment->qName == prevQname) {
+        alignments.push_back(*alignment);
+        
+        if ((*alignment)->qName == prevQname) {
             ++secondaryAlignments;
+            
+            if(std::next(alignment) == inAlignments.end() || (*std::next(alignment))->qName != (*alignment)->qName){
+                
+                countSupplementary(alignments);
+                
+                alignments.clear();
+                
+            }
+            
         }else{
             ++primaryAlignments;
-            prevQname = alignment->qName;
+            
+            prevQname = (*alignment)->qName;
+            
         }
+        
+    }
+    
+}
+
+void InAlignments::countSupplementary(std::vector<InAlignment*> alignments){
+    
+    unsigned int pos = 0;
+    
+    sort(alignments.begin(), alignments.end(), [](InAlignment* one, InAlignment* two){return one->qStart < two->qStart;});
+    
+    for (InAlignment* alignment : alignments) {
+    
+        if(alignment->qStart > pos && pos != 0)
+            ++supplementaryAlignments;
+        
+        pos = alignment->qEnd;
         
     }
     

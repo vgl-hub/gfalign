@@ -1,0 +1,9 @@
+read1	169	0	169	+	>11<12>13	169	0	169	169	169	60	NM:i:0	AS:f:169	dv:f:0	id:f:1	cg:Z:169=
+read2 =read1 RV with 7 mutations (lowercase)	169	0	169	+	<13>12<11	169	0	169	162	169	60	NM:i:7	AS:f:148.42	dv:f:0.0414201	id:f:0.95858	cg:Z:8=1X8=1X10=1X41=1X32=1X53=1X7=1X3=
+read3 =read1 random substring	62	0	62	+	<12>13	120	24	86	62	62	60	NM:i:0	AS:f:62	dv:f:0	id:f:1	cg:Z:62=
+read4 =read1 random substring	41	0	41	+	>11<12	109	25	66	41	41	60	NM:i:0	AS:f:41	dv:f:0	id:f:1	cg:Z:41=
+read5 =read1 random substring	55	0	55	+	>11	55	0	55	55	55	60	NM:i:0	AS:f:55	dv:f:0	id:f:1	cg:Z:55=
+read6 =read1 random substring	87	0	87	+	<12>13	120	33	120	87	87	60	NM:i:0	AS:f:87	dv:f:0	id:f:1	cg:Z:87=
+read7 =read1 random substring	28	0	28	+	>12	60	22	50	28	28	60	NM:i:0	AS:f:28	dv:f:0	id:f:1	cg:Z:28=
+read8 supplementary alignment ATGCCGTATTCCAAGG	91	51	91	+	<13	65	0	40	40	40	60	NM:i:0	AS:f:40	dv:f:0	id:f:1	cg:Z:40=
+read8 supplementary alignment ATGCCGTATTCCAAGG	91	0	35	+	<11	55	20	55	35	35	60	NM:i:0	AS:f:35	dv:f:0	id:f:1	cg:Z:35=

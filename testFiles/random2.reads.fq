@@ -1,28 +1,32 @@
 @read1
-CCGTTCCATGAAGGCCAGAGTTACTTACCGGCCCTTTCCATGCGCGCGCCAAAATTCTCTCACGAGGAGAGAGTGAGATCGTGCAATCCTCCGTTAACATATTCTTAAATCGCATAGCTATGTATTTTGCAGAGGTAGCGACATCTTGACGGGCACTTCACAGATAGTGGG
+CCGTTCCATGAAGGCCAGAGTTACTTACCGGCCCTTTCCATGCGCGCGCCATAAATTCTCTCACGAGGAGAGAAGATCGTGCAATCCTCCGTTAACATATTCTTAAATCGCATAGCTATGTATTTTGCAGAGGTAGCGACATCTTGACGGGCACTTCACAGATAGTGGG
 +
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@read2 =read1 with 7 mutations (lowercase)
-CCGTcCCATGAAGGCCgGAGTTACTTACCGGCCCTTTCCATGCGCGCGaCAAAATTCTCTCACGAGGAtAGAGTGAGATCGTGCAATCCTCcGTTAACATtTTCTTAAATCGCaTAGCTATGTATTTTGCAGAGGTAGCGACATCTTGACGGGCACTTCtCAaATAGTGGG
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@read2 =read1 RV with 7 mutations (lowercase)
+CCCACTATgTGTGAAGTaCCCGTCAAGAcGTCGCTACCTCTGCAAAATACATAGCTATGCGATTTAAGAAcATGTTAACGGAGGATTGCACGATCTTCTCTCCaCGTGAGAGAATTTATGGCGCGCGCATGGAAAGGGCCGGTAAGTAACTCTGGCCaTCATGGAtCGG
 +
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @read3 =read1 random substring
-CCAGAGTTACTTACCGGCCCTTTCCATGCGCGCGCCAAAATTC
-+
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@read4 =read1 random substring
-TCGTGCAATCCTCCGTTAACATATTCTTAAATCGCATAGCTATGTATTTTGCAGAGGTAGC
-+
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@read5 =read1 random substring
-TATTCTTAAATCGCATAGCTATGTATTTTGCAGAGGTAGCGACATCTTGACGGGCACTTCAC
+AGATCGTGCAATCCTCCGTTAACATATTCTTAAATCGCATAGCTATGTATTTTGCAGAGGTA
 +
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@read4 =read1 random substring
+TACCGGCCCTTTCCATGCGCGCGCCATAAATTCTCTCACGA
++
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@read5 =read1 random substring
+CCGTTCCATGAAGGCCAGAGTTACTTACCGGCCCTTTCCATGCGCGCGCCATAAA
++
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @read6 =read1 random substring
-CGTTCCATGAAGGCCAGAGTTACTTACCGGCCCTTTCCATGCGCGCGCCAAAATTCTCTCACGAGGAGAGAGTGAGATCGTGCAATCCTCCGTTAACATATTCTTAAATCGCATAGCTATGT
+AATCCTCCGTTAACATATTCTTAAATCGCATAGCTATGTATTTTGCAGAGGTAGCGACATCTTGACGGGCACTTCACAGATAGTGGG
 +
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @read7 =read1 random substring
-GAGAGAGTGAGATCGTGCAATCCTCCGTTAACATATTCTTAAA
+GGATTGCACGATCTTCTCTCCTCGTGAG
 +
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@read8 supplementary alignment ATGCCGTATTCCAAGG
+AGGGCCGGTAAGTAACTCTGGCCTTCATGGAACGGATGCCGTATTCCAAGGCCCACTATCTGTGAAGTGCCCGTCAAGATGTCGCTACCTC
++
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

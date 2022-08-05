@@ -69,7 +69,7 @@ class InAlignments{
                             totMapq = 0,
                             totMatches = 0,
                             totBlockLen = 0,
-                            primaryAlignments = 0, secondaryAlignments = 0;
+                            primaryAlignments = 0, secondaryAlignments = 0, supplementaryAlignments = 0;
     
     std::vector<std::vector<Edge>> adjEdgeList;
     
@@ -104,6 +104,9 @@ public:
     
     std::vector<std::vector<Edge>> getEdgeGraph();
     
+    void countSupplementary(std::vector<InAlignment*> alignments);
+    
+    void sortAlignmentsByQStart(std::vector<InAlignment*>* alignments);
     
 };
 

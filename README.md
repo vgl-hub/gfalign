@@ -25,3 +25,13 @@ Or decorate the graph with information from the alignment:
 `gfalign eval -g aln.gaf -f testFiles/random2.gfa -o newGFA.gfa`
 
 To check out all tool and options available use `gfalign -h`.
+
+## How to cite
+
+If you use **gfalign** in your work, please cite:
+
+Gfastats: conversion, evaluation and manipulation of genome sequences using assembly graphs
+
+Giulio Formenti, Linelle Abueg, Angelo Brajuka, Nadolina Brajuka, Cristo Gallardo, Alice Giani, Olivier Fedrigo, Erich D. Jarvis
+
+doi: https://doi.org/10.1093/bioinformatics/btac460

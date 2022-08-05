@@ -1,7 +1,0 @@
-read1	171	0	171	+	>11<12>13	171	0	171	171	171	60	NM:i:0	AS:f:171	dv:f:0	id:f:1	cg:Z:171=
-read2 =read1 with 7 mutations (lowercase)	171	0	171	+	>11<12>13	171	0	171	164	171	60	NM:i:7	AS:f:150.42	dv:f:0.0409357	id:f:0.959064	cg:Z:4=1X11=1X31=1X19=1X31=1X58=1X2=1X8=
-read3 =read1 random substring	43	0	43	+	>11>13	117	14	57	41	43	60	NM:i:2	AS:f:37.12	dv:f:0.0465116	id:f:0.953488	cg:Z:37=1X2=1X2=
-read4 =read1 random substring	61	0	61	+	<12>13	120	27	88	61	61	60	NM:i:0	AS:f:61	dv:f:0	id:f:1	cg:Z:61=
-read5 =read1 random substring	62	0	62	+	<12>13	120	48	110	62	62	60	NM:i:0	AS:f:62	dv:f:0	id:f:1	cg:Z:62=
-read6 =read1 random substring	122	0	122	+	>11<12>13	171	1	123	122	122	60	NM:i:0	AS:f:122	dv:f:0	id:f:1	cg:Z:122=
-read7 =read1 random substring	43	0	43	+	<12	60	15	58	43	43	60	NM:i:0	AS:f:43	dv:f:0	id:f:1	cg:Z:43=
