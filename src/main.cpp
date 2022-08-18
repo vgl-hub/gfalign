@@ -167,6 +167,12 @@ int main(int argc, char **argv) {
                         cmd = getArgs(optarg, argc, argv);
                         
                         break;
+                    default:
+                        
+                        std::cout<<"Could not find tool: "<<optarg<<std::endl;
+                        exit(1);
+                        
+                        break;
                         
                 }
                 
@@ -294,6 +300,16 @@ int main(int argc, char **argv) {
     }
     
     if (tools.at(action) == 2){
+        
+        if (userInput.iAlignFileArg == "") {
+        
+            printf("%s", strHelp);
+            printf("\nOptions:\n");
+            printf("-f --input-sequence sequence input file (gfa1/2).\n");
+            printf("-g --input-alignment alignment input file (currently supports: GAF).\n");
+            exit(0);
+            
+        }
         
         StreamObj streamObj;
         std::shared_ptr<std::istream> stream;
