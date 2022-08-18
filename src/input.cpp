@@ -60,5 +60,7 @@ void Input::read(InSequences& inSequences) {
     stream = streamObj.openStream(userInput, 'f');
     
     readGFA(inSequences, userInput, stream);
+    
+    inSequences.updateStats();
 
 }
