@@ -53,6 +53,7 @@ int stats_flag;
 int discoverPaths_flag;
 int outFile_flag;
 int sortAlignment_flag;
+int terminalAlignments_flag;
 int maxThreads = 0;
 
 std::mutex mtx;
@@ -63,7 +64,6 @@ Log lg;
 int main(int argc, char **argv) {
     
     short int c; // optarg
-    short unsigned int pos_op = 1; // optional arguments
     
     bool arguments = true;
     bool isPipe = false; // to check if input is from pipe
@@ -95,6 +95,8 @@ int main(int argc, char **argv) {
         {"out-format", required_argument, 0, 'o'},
         {"no-sequence", no_argument, &userInput.noSequence, 1},
         {"sort-alignment", no_argument, &sortAlignment_flag, 1},
+        
+        {"output-terminal-alignments", no_argument, &terminalAlignments_flag, 1},
 
         {"threads", required_argument, 0, 'j'},
         
@@ -283,9 +285,9 @@ int main(int argc, char **argv) {
                 exit(0);
         }
         
-        if    (argc == 2 || // handle various cases in which the output should include summary stats
-              (argc == 3 && pos_op == 2) ||
-              (argc == 4 && pos_op == 3)) {
+        if (terminalAlignments_flag) { // handle various cases in which the output should not include summary stats
+            
+            stats_flag = false;
             
         }
         
@@ -339,9 +341,13 @@ int main(int argc, char **argv) {
             
             jobWait(threadPool);
             
-            Report report;
+            if (stats_flag) {
             
-            report.reportStats(inSequences, gSize);
+                Report report;
+                
+                report.reportStats(inSequences, gSize);
+                
+            }
         
         }
         
@@ -357,11 +363,11 @@ int main(int argc, char **argv) {
             
             inAlignments.markDuplicates();
             
-            if(!sortAlignment_flag){
+            if(stats_flag){
             
                 inAlignments.printStats();
             
-            }else{
+            }else if (sortAlignment_flag){
                 
                 inAlignments.outAlignments();
                 

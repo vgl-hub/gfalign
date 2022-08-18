@@ -354,8 +354,14 @@ void InAlignments::countSupplementary(std::vector<InAlignment*> alignments){
     if (alignments.size() == 2 && count == 1) { // we are only looking at unambigous supplementary alignments
         
         if (alignments[0]->pEnd == alignments[0]->pLen && alignments[1]->pStart == 0) { // the end of the leftmost alignment ends at the path end and the start of the rightmost alignment is at the beginning of the path
-        
+            
             ++terminalSupplementaryAlignments;
+            
+            if (terminalAlignments_flag) {
+                
+                std::cout<<alignments[0]->print()<<alignments[1]->print();
+                
+            }
         
         }
         
