@@ -69,7 +69,10 @@ class InAlignments{
                             totMapq = 0,
                             totMatches = 0,
                             totBlockLen = 0,
-                            primaryAlignments = 0, secondaryAlignments = 0, supplementaryAlignments = 0;
+                            primaryAlignments = 0,
+                            secondaryAlignments = 0,
+                            supplementaryAlignments = 0,
+                            terminalSupplementaryAlignments = 0;
     
     std::vector<std::vector<Edge>> adjEdgeList;
     

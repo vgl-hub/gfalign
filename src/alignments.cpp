@@ -271,6 +271,7 @@ void InAlignments::printStats() {
     std::cout<<output("Primary alignments")<<primaryAlignments<<"\n";
     std::cout<<output("Secondary alignments")<<secondaryAlignments<<"\n";
     std::cout<<output("Supplementary alignments")<<supplementaryAlignments<<"\n";
+    std::cout<<output("Terminal supplementary alignments")<<terminalSupplementaryAlignments<<"\n";
 
 }
 
@@ -307,6 +308,7 @@ void InAlignments::markDuplicates(){
         alignments.push_back(*alignment);
         
         if ((*alignment)->qName == prevQname) {
+            
             ++secondaryAlignments;
             
             if(std::next(alignment) == inAlignments.end() || (*std::next(alignment))->qName != (*alignment)->qName){
@@ -318,6 +320,7 @@ void InAlignments::markDuplicates(){
             }
             
         }else{
+            
             ++primaryAlignments;
             
             prevQname = (*alignment)->qName;
@@ -330,16 +333,31 @@ void InAlignments::markDuplicates(){
 
 void InAlignments::countSupplementary(std::vector<InAlignment*> alignments){
     
-    unsigned int pos = 0;
+    unsigned int pos = 0, count = 0;
     
-    sort(alignments.begin(), alignments.end(), [](InAlignment* one, InAlignment* two){return one->qStart < two->qStart;});
+    sort(alignments.begin(), alignments.end(), [](InAlignment* one, InAlignment* two){return one->qStart < two->qStart;}); // first sort the alignments by their qStart
     
     for (InAlignment* alignment : alignments) {
     
-        if(alignment->qStart > pos && pos != 0)
+        if(pos != 0 && alignment->qStart > pos) { // if this is not the first alignment and we are aligning a downstream portion of the read
+            
             ++supplementaryAlignments;
+            
+            ++count;
+            
+        }
         
-        pos = alignment->qEnd;
+        pos = alignment->qEnd; // ensure alignments do not overlap
+        
+    }
+    
+    if (alignments.size() == 2 && count == 1) { // we are only looking at unambigous supplementary alignments
+        
+        if (alignments[0]->pEnd == alignments[0]->pLen && alignments[1]->pStart == 0) { // the end of the leftmost alignment ends at the path end and the start of the rightmost alignment is at the beginning of the path
+        
+            ++terminalSupplementaryAlignments;
+        
+        }
         
     }
     
