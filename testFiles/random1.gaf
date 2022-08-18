@@ -1,0 +1,4 @@
+rd1 (consistent)	91	51	91	+	>ctg2	65	0	40	40	40	60	NM:i:0	AS:f:40	dv:f:0	id:f:1	cg:Z:40=
+rd1 (consistent)	91	0	35	+	>ctg1	55	20	55	35	35	60	NM:i:0	AS:f:35	dv:f:0	id:f:1	cg:Z:35=
+rd2 (inconsistent)	91	51	91	+	<ctg2	65	25	65	40	40	60	NM:i:0	AS:f:40	dv:f:0	id:f:1	cg:Z:40=
+rd2 (inconsistent)	91	0	35	+	>ctg1	55	20	55	35	35	60	NM:i:0	AS:f:35	dv:f:0	id:f:1	cg:Z:35=
