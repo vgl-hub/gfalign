@@ -348,6 +348,8 @@ int main(int argc, char **argv) {
                 report.reportStats(inSequences, gSize);
                 
             }
+            
+            exit(1);
         
         }
         
