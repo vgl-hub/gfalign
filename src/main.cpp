@@ -339,8 +339,6 @@ int main(int argc, char **argv) {
             
             in.read(inSequences); // read input content to inSequences container
             
-            exit(1);
-            
             jobWait(threadPool);
             
             if (stats_flag) {
