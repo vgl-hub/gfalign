@@ -309,6 +309,9 @@ int main(int argc, char **argv) {
             printf("\nOptions:\n");
             printf("-f --input-sequence sequence input file (gfa1/2).\n");
             printf("-g --input-alignment alignment input file (currently supports: GAF).\n");
+            printf("-o --out-format ouput to file or stdout (currently supports: GAF).\n");
+            printf("--sort-alignment output sorted alignment.\n");
+            printf("--output-terminal-alignments output terminal alignments.\n");
             exit(0);
             
         }
