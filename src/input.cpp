@@ -60,7 +60,9 @@ void Input::read(InSequences& inSequences) {
     stream = streamObj.openStream(userInput, 'f');
     
     readGFA(inSequences, userInput, stream);
+
+    jobWait(threadPool);
     
-//    inSequences.updateStats();
+    inSequences.updateStats();
 
 }
