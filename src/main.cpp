@@ -93,7 +93,6 @@ int main(int argc, char **argv) {
         {"cmd", no_argument, &cmd_flag, 1},
         {"preset", required_argument, 0, 'p'},
         {"out-format", required_argument, 0, 'o'},
-        {"no-sequence", no_argument, &userInput.noSequence, 1},
         {"sort-alignment", no_argument, &sortAlignment_flag, 1},
         
         {"output-terminal-alignments", no_argument, &terminalAlignments_flag, 1},
