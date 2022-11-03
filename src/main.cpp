@@ -284,7 +284,7 @@ int main(int argc, char **argv) {
                 exit(0);
         }
         
-        if (terminalAlignments_flag) { // handle various cases in which the output should not include summary stats
+        if (sortAlignment_flag || terminalAlignments_flag) { // handle various cases in which the output should not include summary stats
             
             stats_flag = false;
             
