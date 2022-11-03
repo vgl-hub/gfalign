@@ -221,7 +221,7 @@ InAlignment* InAlignments::traverseInAlignment(Log* threadLog, std::string* alig
     
     tmpStats->add(inAlignment);
     
-    threadLog->verbose("Individual alignment read: " + cols[0]);
+    threadLog->add("Individual alignment read: " + cols[0]);
     
     return inAlignment;
     
