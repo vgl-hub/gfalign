@@ -87,7 +87,7 @@ else
 	@echo ">>> Install conda first."
     exit
 endif
-	. activate GraphAligner && $(MAKE) -j -C $(GA_SUBDIR)
+	conda activate GraphAligner && $(MAKE) -j -C $(GA_SUBDIR)
 	mv GraphAligner/bin/* build/bin
 	
 $(BUILD):
