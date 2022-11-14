@@ -68,6 +68,11 @@ gfalibs:
 	$(MAKE) -j -C $(GFALIBS_DIR) CXXFLAGS="$(CXXFLAGS)"
 
 .PHONY: GraphAligner
+.ONESHELL:
+
+SHELL = /bin/bash
+CONDA_ACTIVATE = source $$(conda info --base)/etc/profile.d/conda.sh ; conda activate ; conda activate
+
 GraphAligner:
 ifeq (True,$(HAS_CONDA))
 ifneq ("$(wildcard $(MY_ENV_DIR))","")
@@ -87,7 +92,7 @@ else
 	@echo ">>> Install conda first."
     exit
 endif
-	source activate GraphAligner && $(MAKE) -j -C $(GA_SUBDIR)
+	$(CONDA_ACTIVATE) GraphAligner && $(MAKE) -j -C $(GA_SUBDIR)
 	mv GraphAligner/bin/* build/bin
 	
 $(BUILD):
