@@ -14,15 +14,16 @@ GA_SUBDIR := $(CURDIR)/GraphAligner
 GFALIBS_SUBDIR := $(CURDIR)/gfalibs
 
 LIBS = -lz
-LDFLAGS= -pthread
+LDFLAGS = -pthread
 
 ifeq (,$(shell which conda))
-    HAS_CONDA=False
+    HAS_CONDA = False
 else
-    HAS_CONDA=True
-    ENV_DIR=$(shell conda info --base)
-    MY_ENV_DIR=$(ENV_DIR)/envs/GraphAligner
-    CONDA_ACTIVATE=source $$(conda info --base)/etc/profile.d/conda.sh ; conda activate ; conda activate
+    HAS_CONDA = True
+    CONDA_ENV_NAME = GraphAligner
+    ENV_DIR = $(shell conda info --base)
+    MY_ENV_DIR = $(ENV_DIR)/envs/$(CONDA_ENV_NAME)
+    CONDA_ACTIVATE = source $$(conda info --base)/etc/profile.d/conda.sh ; conda activate ; conda activate
 endif
 
 OSF :=
