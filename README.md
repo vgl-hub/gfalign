@@ -2,6 +2,9 @@
 
 Graph alignment and analysis.
 
+## Prerequisites
+An installation of conda is required.
+
 ## Installation
 
 To install run `git clone https://github.com/vgl-hub/gfalign.git --recursive` and `make -j` in the `gfalign` folder.
