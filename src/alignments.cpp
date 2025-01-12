@@ -12,17 +12,19 @@
 #include <zstream/izstream.hpp>
 #include <zstream/izstream_impl.hpp>
 
-#include <parallel_hashmap/phmap.h>
-
 #include "log.h"
 #include "global.h"
-
+#include "uid-generator.h"
 #include "bed.h"
 #include "struct.h"
+#include "functions.h"
 #include "gfa-lines.h"
+#include "gfa.h"
+#include "sak.h"
 #include "stream-obj.h"
-
-#include "functions.h" // global functions
+#include "input-agp.h"
+#include "input-filters.h"
+#include "input-gfa.h"
 
 #include "alignments.h"
 
@@ -74,28 +76,19 @@ std::string InAlignment::print() {
 
 }
 
-InAlignments::~InAlignments()
-{
+InAlignments::~InAlignments() {
 
     for (InAlignment* p : inAlignments)
         delete p;
-
 }
 
-void InAlignments::load(UserInput userInput) {
+void InAlignments::load(std::shared_ptr<std::istream> stream, int terminalAlignments_flag) {
 
+    this->terminalAlignments_flag = terminalAlignments_flag;
     unsigned int batchSize = 10000;
-    
     StreamObj streamObj;
-    
     std::string* alignment = new std::string;
-    
-    std::shared_ptr<std::istream> stream;
-
-    stream = streamObj.openStream(userInput, 'g');
-
     Alignments* alignmentBatch = new Alignments;
-    
     std::vector<std::string> arguments;
 
     if (stream) {
@@ -357,12 +350,8 @@ void InAlignments::countSupplementary(std::vector<InAlignment*> alignments){
             
             ++terminalSupplementaryAlignments;
             
-            if (terminalAlignments_flag) {
-                
+            if (terminalAlignments_flag)
                 std::cout<<alignments[0]->print()<<alignments[1]->print();
-                
-            }
-        
         }
         
     }

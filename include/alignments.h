@@ -55,6 +55,7 @@ public:
 
 class InAlignments{
     
+    int terminalAlignments_flag = 0;
     std::vector<Log> logs;
     
     UserInput userInput;
@@ -83,7 +84,7 @@ public:
     
     ~InAlignments();
     
-    void load(UserInput userInput);
+    void load(std::shared_ptr<std::istream> stream, int terminalAlignments_flag);
     
     bool traverseInAlignments(Alignments* sequence);
     

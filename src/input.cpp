@@ -11,58 +11,44 @@
 #include <fstream>
 #include <sstream>
 
-#include <parallel_hashmap/phmap.h>
-
-#include "bed.h"
-#include "struct.h"
-#include "functions.h" // global functions
+#include <parallel-hashmap/phmap.h>
 
 #include "log.h"
 #include "global.h"
 #include "uid-generator.h"
-
+#include "bed.h"
+#include "struct.h"
+#include "functions.h"
 #include "gfa-lines.h"
-
-#include "threadpool.h"
 #include "gfa.h"
-#include "sak.h" // swiss army knife
-
-#include "zlib.h"
-#include <zstream/zstream_common.hpp>
-#include <zstream/izstream.hpp>
-#include <zstream/izstream_impl.hpp>
-
+#include "sak.h"
 #include "stream-obj.h"
+#include "input-agp.h"
+#include "input-filters.h"
+#include "input-gfa.h"
 
 #include "alignments.h"
-
-#include "input-gfa.h"
 #include "input.h"
 
-void Input::load(UserInput userInput) {
-    
+void Input::load(UserInputGfalign userInput) {
     this->userInput = userInput;
-    
 }
 
 void Input::read(InAlignments& inAlignments) {
     
-    if (userInput.iAlignFileArg.empty()) {return;}
-
-    inAlignments.load(userInput);
-
+    if (userInput.inAlign.empty()) {return;}
+    
+    std::shared_ptr<std::istream> stream;
+    stream = streamObj.openStream(userInput, 'g');
+    inAlignments.load(stream, userInput.terminalAlignments_flag);
 }
 
 void Input::read(InSequences& inSequences) {
     
-    if (userInput.iSeqFileArg.empty()) {return;}
+    if (userInput.inAlign.empty()) {return;}
     
     stream = streamObj.openStream(userInput, 'f');
-    
     readGFA(inSequences, userInput, stream);
-
     jobWait(threadPool);
-    
     inSequences.updateStats();
-
 }

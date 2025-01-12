@@ -48,7 +48,7 @@ GFALIGN_BINS := $(addprefix $(BINDIR)/, $(GFALIGN_OBJS))
 #gfalibs
 GFALIBS_DIR := $(CURDIR)/gfalibs
 
-head: $(GFALIGN_BINS) $(GA_LIBSFILES) gfalibs | $(BUILD)
+head: $(GFALIGN_BINS) gfalibs | $(BUILD)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(BUILD)/$(TARGET) $(wildcard $(BINDIR)/*) $(GFALIBS_DIR)/*.o $(LIBS)
 	
 debug: CXXFLAGS += -DDEBUG
@@ -80,14 +80,7 @@ ifneq ("$(wildcard $(MY_ENV_DIR))","")
 	@echo ">>> Found GraphAligner environment in $(MY_ENV_DIR). Skipping installation..."
 else
 	@echo ">>> Detected conda, but $(CONDA_ENV_NAME) is missing in $(ENV_DIR). Installing ..."
-ifeq ($(OSF),LINUX)
-	conda env create -f $(GA_SUBDIR)/CondaEnvironment_linux.yml
-else ifeq ($(OSF),OSX)
-	conda env create -f $(GA_SUBDIR)/CondaEnvironment_osx.yml
-else
-	@echo ">>> OS $(OSF) not supported by GraphAligner ..."
-	exit
-endif
+	conda install -c bioconda graphaligner
 endif
 else
 	@echo ">>> Install conda first."
@@ -106,3 +99,4 @@ clean:
 	$(MAKE) -C $(GA_SUBDIR) clean
 	$(RM) -r build
 	$(RM) -r $(MY_ENV_DIR)
+	$(MAKE) -C $(GFALIBS_DIR) clean

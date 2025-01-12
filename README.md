@@ -5,6 +5,7 @@ Graph alignment and analysis.
 ## Installation
 
 To install run `git clone https://github.com/vgl-hub/gfalign.git --recursive` and `make -j` in the `gfalign` folder.
+If you wish to generate alignments using gfalign (`align` option), you need to have GraphAligner installed. You can either install [GraphAligner](https://github.com/maickrau/GraphAligner) directly (recommended) or run `make GraphAligner` (requires Conda).
 
 ## Usage
 

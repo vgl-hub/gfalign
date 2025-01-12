@@ -1,81 +1,28 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <string>
-#include <unordered_map>
-#include <getopt.h>
-#include <vector>
-#include <map>
-
-#include <iostream>
-#include <fstream>
-
-#include <parallel_hashmap/phmap.h>
-
-
-#include "bed.h"
-
-#include "struct.h"
-#include "functions.h"
-#include "global.h"
-
-#include "zlib.h"
-#include <zstream/zstream_common.hpp>
-#include <zstream/izstream.hpp>
-#include <zstream/izstream_impl.hpp>
-
-#include "struct.h"
-#include "stream-obj.h"
-
-#include "uid-generator.h"
-#include "gfa-lines.h"
-#include "gfa.h"
-
-#include "alignments.h"
-#include "eval.h"
-#include "input.h"
-#include "output.h"
-
-#include <main.h>
+#include "main.h"
 
 std::string version = "0.1";
 
 //global
 std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now(); // immediately start the clock when the program is run
 
-int hc_flag;
-int hc_cutoff;
-short int tabular_flag;
-int cmd_flag;
 int verbose_flag;
-int outBubbles_flag;
-int stats_flag;
-int discoverPaths_flag;
-int outFile_flag;
-int sortAlignment_flag;
-int terminalAlignments_flag;
-int maxThreads = 0;
+Log lg;
+std::vector<Log> logs;
+int tabular_flag;
 
+int maxThreads = 0;
 std::mutex mtx;
 ThreadPool<std::function<bool()>> threadPool;
-Log lg;
 
+UserInputGfalign userInput; // initialize input object
 
 int main(int argc, char **argv) {
     
     short int c; // optarg
-    
     bool arguments = true;
     bool isPipe = false; // to check if input is from pipe
-    
     unsigned long long int gSize = 0; // expected genome size, with 0 NG/LG* statistics are not computed
-    
-    UserInput userInput; // initialize input object
-    
     std::string action, aligner = "GraphAligner", preset_type, preset = " -x vg", cmd;
-    
-    userInput.outSequence = "gfa"; // default output type
-    
     const char strHelp[] = "gfalign [options] [tool] [arguments]\n";
     
     if (argc == 1) { // gfastats with no arguments
@@ -90,12 +37,12 @@ int main(int argc, char **argv) {
         {"input-sequence", required_argument, 0, 'f'},
         {"input-reads", required_argument, 0, 'r'},
         {"input-alignment", required_argument, 0, 'g'},
-        {"cmd", no_argument, &cmd_flag, 1},
+        {"cmd", no_argument, &userInput.cmd_flag, 1},
         {"preset", required_argument, 0, 'p'},
         {"out-format", required_argument, 0, 'o'},
-        {"sort-alignment", no_argument, &sortAlignment_flag, 1},
+        {"sort-alignment", no_argument, &userInput.sortAlignment_flag, 1},
         
-        {"output-terminal-alignments", no_argument, &terminalAlignments_flag, 1},
+        {"output-terminal-alignments", no_argument, &userInput.terminalAlignments_flag, 1},
 
         {"threads", required_argument, 0, 'j'},
         
@@ -215,8 +162,8 @@ int main(int argc, char **argv) {
                 }else{ // input is a regular file
                     
                     ifFileExists(optarg);
-                    userInput.iSeqFileArg = optarg;
-                    stats_flag = true;
+                    userInput.inSequence = optarg;
+                    userInput.stats_flag = true;
                     
                 }
                     
@@ -225,22 +172,18 @@ int main(int argc, char **argv) {
             case 'g': // input alignment
                 
                 if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
-                
                     userInput.pipeType = 'g'; // pipe input is a sequence
-                
                 }else{ // input is a regular file
                     
                     ifFileExists(optarg);
-                    userInput.iAlignFileArg = optarg;
-                    stats_flag = true;
-                    
+                    userInput.inAlign = optarg;
+                    userInput.stats_flag = true;
                 }
-                    
                 break;
                 
             case 'j': // max threads
                 maxThreads = atoi(optarg);
-                stats_flag = 1;
+                userInput.stats_flag = 1;
                 break;
                 
             case 'r': // input reads
@@ -255,7 +198,7 @@ int main(int argc, char **argv) {
                     for( ;optind < argc && *argv[optind] != '-'; optind++){
                         
                         ifFileExists(argv[optind]);
-                        userInput.iReadFileArg.push_back(argv[optind]);
+                        userInput.inFiles.push_back(argv[optind]);
                         
                     }
                     
@@ -263,8 +206,7 @@ int main(int argc, char **argv) {
                     
                 break;
             case 'o': // handle output (file or stdout)
-                userInput.outSequence = optarg;
-                outFile_flag = 1;
+                userInput.outFile = optarg;
                 break;
                 
             case 'v': // software version
@@ -283,27 +225,16 @@ int main(int argc, char **argv) {
                 printf("--cmd print $0 to stdout.\n");
                 exit(0);
         }
-        
-        if (sortAlignment_flag || terminalAlignments_flag) { // handle various cases in which the output should not include summary stats
-            
-            stats_flag = false;
-            
-        }
-        
+        if (userInput.sortAlignment_flag || userInput.terminalAlignments_flag) // handle various cases in which the output should not include summary stats
+            userInput.stats_flag = false;
     }
-    
-    if (cmd_flag) { // print command line
-        for (unsigned short int arg_counter = 0; arg_counter < argc; arg_counter++) {
+    if (userInput.cmd_flag) { // print command line
+        for (unsigned short int arg_counter = 0; arg_counter < argc; arg_counter++)
             printf("%s ", argv[arg_counter]);
-        }
         printf("\n");
-        
     }
-    
     if (tools.at(action) == 2){
-        
-        if (userInput.iAlignFileArg == "") {
-        
+        if (userInput.inAlign == "") {
             printf("%s", strHelp);
             printf("\nOptions:\n");
             printf("-f --input-sequence sequence input file (gfa1/2).\n");
@@ -312,89 +243,53 @@ int main(int argc, char **argv) {
             printf("--sort-alignment output sorted alignment.\n");
             printf("--output-terminal-alignments output terminal alignments.\n");
             exit(0);
-            
         }
-        
         StreamObj streamObj;
         std::shared_ptr<std::istream> stream;
         std::string newLine;
         
         Input in;
-        
         in.load(userInput); // load user input
-        
         lg.verbose("User input loaded");
-        
         threadPool.init(maxThreads); // initialize threadpool
-        
-        lg.verbose("GFA: " + userInput.iSeqFileArg);
-    
+        lg.verbose("GFA: " + userInput.inAlign);
         InSequences inSequences; // initialize sequence collection object
-        
         InAlignments inAlignments; // initialize alignment collection object
-        
         lg.verbose("Alignment object generated");
         
-        if(userInput.iSeqFileArg != ""){
+        if(userInput.inAlign != ""){
             
             lg.verbose("Sequence object generated");
-            
             in.read(inSequences); // read input content to inSequences container
-            
-            if (stats_flag) {
-            
+            if (userInput.stats_flag) {
                 Report report;
-                
-                report.reportStats(inSequences, gSize);
-                
+                report.reportStats(inSequences, gSize, 0);
             }
-        
         }
         
-        if(userInput.iAlignFileArg != ""){
+        if(userInput.inAlign != ""){
             
-            lg.verbose("Alignment: " + userInput.iAlignFileArg);
-            
+            lg.verbose("Alignment: " + userInput.inAlign);
             in.read(inAlignments); // read input content to inAlignments container
-            
             jobWait(threadPool);
-            
             inAlignments.sortAlignmentsByNameAscending();
-            
             inAlignments.markDuplicates();
             
-            if(stats_flag){
-            
+            if(userInput.stats_flag)
                 inAlignments.printStats();
-            
-            }else if (sortAlignment_flag){
-                
+            else if (userInput.sortAlignment_flag)
                 inAlignments.outAlignments();
-                
-            }
-            
         }
-        
         threadPool.join();
-        
-        if(userInput.iSeqFileArg != "" && userInput.iAlignFileArg != ""){
+        if(userInput.inAlign != "" && userInput.inAlign != ""){
             
             evalGFA(inSequences, inAlignments);
-            
             Report report;
-            
-            if (outFile_flag) { // output sequences to file or stdout
-            
-                report.outFile(inSequences, userInput);
-                
-            }
-            
+            if (userInput.outFile != "") // output sequences to file or stdout
+                report.writeToStream(inSequences, userInput.outFile, userInput);
         }
-        
     }
-    
     exit(EXIT_SUCCESS);
-    
 }
 
 std::string getArgs(char* optarg, unsigned int argc, char **argv) {

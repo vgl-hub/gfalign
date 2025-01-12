@@ -1,9 +1,17 @@
 #ifndef INPUT_H
 #define INPUT_H
 
+struct UserInputGfalign : UserInput {
+    
+    int cmd_flag = 0,
+    terminalAlignments_flag = 0,
+    sortAlignment_flag = 0;
+
+};
+
 class Input {
     
-    UserInput userInput;
+    UserInputGfalign userInput;
     
     //intermediates
     std::string h;
@@ -17,7 +25,7 @@ class Input {
     
 public:
     
-    void load(UserInput userInput);
+    void load(UserInputGfalign userInput);
     
     void read(InSequences& inSequence);
     

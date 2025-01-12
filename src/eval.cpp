@@ -7,23 +7,25 @@
 #include <queue>
 #include <stack>
 
-#include <parallel_hashmap/phmap.h>
-
-#include "bed.h"
-#include "struct.h"
-#include "functions.h" // global functions
+#include <parallel-hashmap/phmap.h>
 
 #include "log.h"
 #include "global.h"
 #include "uid-generator.h"
-
+#include "bed.h"
+#include "struct.h"
+#include "functions.h"
 #include "gfa-lines.h"
 #include "gfa.h"
+#include "sak.h"
+#include "stream-obj.h"
+#include "input-agp.h"
+#include "input-filters.h"
+#include "input-gfa.h"
 
 #include "alignments.h"
-
+#include "input.h"
 #include "eval.h"
-
 
 void evalGFA(InSequences& InSequences, InAlignments& InAlignments) {
     
