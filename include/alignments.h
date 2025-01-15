@@ -84,7 +84,7 @@ public:
     
     ~InAlignments();
     
-    void load(std::shared_ptr<std::istream> stream, int terminalAlignments_flag);
+    void load(std::string file, int terminalAlignments_flag);
     
     bool traverseInAlignments(Alignments* sequence);
     
