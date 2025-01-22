@@ -37,15 +37,10 @@ void Input::load(UserInputGfalign userInput) {
 void Input::read(InAlignments& inAlignments) {
     
     if (userInput.inAlign.empty()) {return;}
-    
-    std::shared_ptr<std::istream> stream;
-    stream = streamObj.openStream(userInput, 'g');
-    inAlignments.load(stream, userInput.terminalAlignments_flag);
+    inAlignments.load(userInput.inAlign, userInput.terminalAlignments_flag);
 }
 
 void Input::read(InSequences& inSequences) {
-    
-    if (userInput.inAlign.empty()) {return;}
     
     stream = streamObj.openStream(userInput, 'f');
     readGFA(inSequences, userInput, stream);

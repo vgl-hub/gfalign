@@ -9,11 +9,9 @@ int verbose_flag;
 Log lg;
 std::vector<Log> logs;
 int tabular_flag;
-
 int maxThreads = 0;
 std::mutex mtx;
 ThreadPool<std::function<bool()>> threadPool;
-
 UserInputGfalign userInput; // initialize input object
 
 int main(int argc, char **argv) {
@@ -26,17 +24,15 @@ int main(int argc, char **argv) {
     const char strHelp[] = "gfalign [options] [tool] [arguments]\n";
     
     if (argc == 1) { // gfastats with no arguments
-            
         printf("%s", strHelp);
         printf("-h for additional help.\n");
         exit(0);
-        
     }
-    
     static struct option long_options[] = { // struct mapping long options
         {"input-sequence", required_argument, 0, 'f'},
         {"input-reads", required_argument, 0, 'r'},
         {"input-alignment", required_argument, 0, 'g'},
+        {"node-list", required_argument, 0, 'n'},
         {"cmd", no_argument, &userInput.cmd_flag, 1},
         {"preset", required_argument, 0, 'p'},
         {"out-format", required_argument, 0, 'o'},
@@ -52,35 +48,25 @@ int main(int argc, char **argv) {
         
         {0, 0, 0, 0}
     };
-    
     const static std::unordered_map<std::string,int> tools{
         {"align",1},
-        {"eval",2}
+        {"eval",2},
+        {"subgraph",3}
     };
-    
     while (arguments) { // loop through argv
         
         int option_index = 0;
-        
-        c = getopt_long(argc, argv, "-:v:f:p:g:j:o:r:h",
+        c = getopt_long(argc, argv, "-:v:f:p:g:n:j:o:r:h",
                         long_options, &option_index);
         
-        if (optind < argc && !isPipe) { // if pipe wasn't assigned already
-            
+        if (optind < argc && !isPipe) // if pipe wasn't assigned already
             isPipe = isDash(argv[optind]) ? true : false; // check if the argument to the option is a '-' and set it as pipe input
-            
-        }
         
-        if (optarg != nullptr && !isPipe) { // case where pipe input is given as positional argument (input sequence file)
-        
+        if (optarg != nullptr && !isPipe) // case where pipe input is given as positional argument (input sequence file)
             isPipe = isDash(optarg) ? true : false;
-            
-        }
         
-        if (c == -1) { // exit the loop if run out of options
+        if (c == -1) // exit the loop if run out of options
             break;
-            
-        }
 
         switch (c) {
             case ':': // handle options without arguments
@@ -98,79 +84,57 @@ int main(int argc, char **argv) {
             default: // handle positional arguments
                 
                 action = optarg;
-                
                 switch (tools.count(optarg) ? tools.at(optarg) : 0) {
                     case 1:
-                        
                         cmd = aligner + getArgs(optarg, argc, argv) + preset;
-                        
                         std::cout<<"Invoking: "<<cmd<<std::endl;
                         std::system(cmd.c_str());
-                        
                         arguments = false;
-                        
                         break;
                     case 2:
-                        
+                    case 3:
                         cmd = getArgs(optarg, argc, argv);
-                        
                         break;
                     default:
-                        
-                        std::cout<<"Could not find tool: "<<optarg<<std::endl;
+                        std::cout<<"Could not find command: "<<optarg<<std::endl;
                         exit(1);
-                        
                         break;
-                        
                 }
-                
             case 0: // case for long options without short options
                 
 //                if (strcmp(long_options[option_index].name,"line-length") == 0)
 //                  splitLength = atoi(optarg);
-                
                 break;
-                
             case 'p': // presets
             {
                 const std::map<std::string, std::vector<std::string>> presets {
                     {"hifi", {"GraphAligner", " -x vg"}},
                     {"CLR", {"GraphAligner", " -x vg --seeds-mxm-length 1000 --min-alignment-score 1000 --precise-clipping 0.75"}}
                 };
-                
                 if (presets.find(optarg) != presets.end()){
 
                     aligner = presets.at(optarg)[0];
                     preset = presets.at(optarg)[1];
-                    
                 }else{
                     
                     std::cout<<"Could not find preset: "<<optarg<<std::endl;
                     exit(1);
-                
                 }
-                
                 break;
             }
                 
             case 'f': // input sequence
                 
                 if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
-                
                     userInput.pipeType = 'f'; // pipe input is a sequence
-                
                 }else{ // input is a regular file
                     
                     ifFileExists(optarg);
                     userInput.inSequence = optarg;
                     userInput.stats_flag = true;
-                    
                 }
-                    
                 break;
-
             case 'g': // input alignment
-                
                 if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
                     userInput.pipeType = 'g'; // pipe input is a sequence
                 }else{ // input is a regular file
@@ -180,35 +144,35 @@ int main(int argc, char **argv) {
                     userInput.stats_flag = true;
                 }
                 break;
-                
+            case 'n': // node list
+                if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
+                    userInput.pipeType = 'g'; // pipe input is a sequence
+                }else{ // input is a regular file
+                    ifFileExists(optarg);
+                    userInput.nodeList = optarg;
+                    userInput.stats_flag = true;
+                }
+                break;
             case 'j': // max threads
                 maxThreads = atoi(optarg);
                 userInput.stats_flag = 1;
                 break;
                 
             case 'r': // input reads
-                
                 if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
                 
                     userInput.pipeType = 'r'; // pipe input is a sequence
-                
                 }else{ // input is a regular file
-                    
                     optind--;
                     for( ;optind < argc && *argv[optind] != '-'; optind++){
-                        
                         ifFileExists(argv[optind]);
                         userInput.inFiles.push_back(argv[optind]);
-                        
                     }
-                    
                 }
-                    
                 break;
             case 'o': // handle output (file or stdout)
                 userInput.outFile = optarg;
                 break;
-                
             case 'v': // software version
                 printf("gfalign v%s\n", version.c_str());
                 printf("Giulio Formenti giulio.formenti@gmail.com\n");
@@ -239,20 +203,16 @@ int main(int argc, char **argv) {
             printf("\nOptions:\n");
             printf("-f --input-sequence sequence input file (gfa1/2).\n");
             printf("-g --input-alignment alignment input file (currently supports: GAF).\n");
-            printf("-o --out-format ouput to file or stdout (currently supports: GAF).\n");
+            printf("-o --out-format ouput to file or stdout (currently supports: GFA, GAF).\n");
             printf("--sort-alignment output sorted alignment.\n");
             printf("--output-terminal-alignments output terminal alignments.\n");
             exit(0);
         }
-        StreamObj streamObj;
-        std::shared_ptr<std::istream> stream;
-        std::string newLine;
-        
         Input in;
         in.load(userInput); // load user input
         lg.verbose("User input loaded");
         threadPool.init(maxThreads); // initialize threadpool
-        lg.verbose("GFA: " + userInput.inAlign);
+        lg.verbose("GFA: " + userInput.inSequence);
         InSequences inSequences; // initialize sequence collection object
         InAlignments inAlignments; // initialize alignment collection object
         lg.verbose("Alignment object generated");
@@ -266,7 +226,6 @@ int main(int argc, char **argv) {
                 report.reportStats(inSequences, gSize, 0);
             }
         }
-        
         if(userInput.inAlign != ""){
             
             lg.verbose("Alignment: " + userInput.inAlign);
@@ -281,13 +240,53 @@ int main(int argc, char **argv) {
                 inAlignments.outAlignments();
         }
         threadPool.join();
-        if(userInput.inAlign != "" && userInput.inAlign != ""){
-            
+        if(userInput.inAlign != "" && userInput.outFile != ""){
             evalGFA(inSequences, inAlignments);
+            Report report;
+            report.writeToStream(inSequences, userInput.outFile, userInput);
+        }
+    }else if (tools.at(action) == 3){
+        if (userInput.nodeList == "") {
+            printf("%s", strHelp);
+            printf("\nOptions:\n");
+            printf("-f --input-sequence sequence input file (gfa1/2).\n");
+            printf("-n --node-list list of nodes to retain in the subgraph.\n");
+            printf("-o --out-format ouput to file or stdout (currently supports: GFA).\n");
+            printf("--sort-alignment output sorted alignment.\n");
+            printf("--output-terminal-alignments output terminal alignments.\n");
+            exit(0);
+        }
+        Input in;
+        in.load(userInput); // load user input
+        lg.verbose("User input loaded");
+        threadPool.init(maxThreads); // initialize threadpool
+        lg.verbose("GFA: " + userInput.inSequence);
+        InSequences inSequences; // initialize sequence collection object
+        lg.verbose("Alignment object generated");
+        
+        if(userInput.inSequence != ""){
+            
+            lg.verbose("Sequence object generated");
+            in.read(inSequences); // read input content to inSequences container
+            if (userInput.stats_flag) {
+                Report report;
+                report.reportStats(inSequences, gSize, 0);
+            }
+            
+            std::vector<std::string> nodeList;
+            std::string line; // Replace with your file's name
+            std::ifstream file(userInput.nodeList);
+            while (std::getline(file, line))
+                nodeList.push_back(line);
+            file.close();
+            
+            lg.verbose("Node list read");
+            inSequences.subgraph(nodeList);
             Report report;
             if (userInput.outFile != "") // output sequences to file or stdout
                 report.writeToStream(inSequences, userInput.outFile, userInput);
         }
+        threadPool.join();
     }
     exit(EXIT_SUCCESS);
 }

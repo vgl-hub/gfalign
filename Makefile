@@ -10,7 +10,6 @@ SOURCE = src
 INCLUDE = include
 BINDIR := $(BUILD)/.o
 
-GA_SUBDIR := $(CURDIR)/GraphAligner
 GFALIBS_SUBDIR := $(CURDIR)/gfalibs
 
 LIBS = -lz
@@ -37,9 +36,6 @@ else
 		OSF = OSX
 	endif
 endif
-
-#GraphAligner
-GA_LIBSFILES := $(GA_SUBDIR)/$(SOURCE)/* $(GA_SUBDIR)/$(INCLUDE)/*
 
 #gfalign
 GFALIGN_OBJS := main alignments input eval
@@ -86,8 +82,6 @@ else
 	@echo ">>> Install conda first."
 	exit
 endif
-	$(CONDA_ACTIVATE) GraphAligner && $(MAKE) -j -C $(GA_SUBDIR)
-	mv GraphAligner/bin/* build/bin
 	
 $(BUILD):
 	-mkdir -p $@
@@ -96,7 +90,6 @@ $(BINDIR):
 	-mkdir -p $@
 	
 clean:
-	$(MAKE) -C $(GA_SUBDIR) clean
 	$(RM) -r build
 	$(RM) -r $(MY_ENV_DIR)
 	$(MAKE) -C $(GFALIBS_DIR) clean
