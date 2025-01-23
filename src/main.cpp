@@ -268,10 +268,6 @@ int main(int argc, char **argv) {
             
             lg.verbose("Sequence object generated");
             in.read(inSequences); // read input content to inSequences container
-            if (userInput.stats_flag) {
-                Report report;
-                report.reportStats(inSequences, gSize, 0);
-            }
             
             std::vector<std::string> nodeList;
             std::string line; // Replace with your file's name
@@ -281,10 +277,16 @@ int main(int argc, char **argv) {
             file.close();
             
             lg.verbose("Node list read");
-            inSequences.subgraph(nodeList);
+            InSequences *subgraph = inSequences.subgraph(nodeList);
             Report report;
             if (userInput.outFile != "") // output sequences to file or stdout
-                report.writeToStream(inSequences, userInput.outFile, userInput);
+                report.writeToStream(*subgraph, userInput.outFile, userInput);
+            
+            if (userInput.stats_flag) {
+                Report report;
+                report.reportStats(*subgraph, gSize, 0);
+            }
+            delete subgraph;
         }
         threadPool.join();
     }
