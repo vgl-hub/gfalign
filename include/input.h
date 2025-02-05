@@ -6,7 +6,7 @@ struct UserInputGfalign : UserInput {
     int cmd_flag = 0,
     terminalAlignments_flag = 0,
     sortAlignment_flag = 0;
-    std::string nodeList;
+    std::string nodeList, source, destination;
     uint32_t dijkstraSteps = 1000;
 };
 

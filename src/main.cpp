@@ -33,6 +33,8 @@ int main(int argc, char **argv) {
         {"input-reads", required_argument, 0, 'r'},
         {"input-alignment", required_argument, 0, 'g'},
         {"node-list", required_argument, 0, 'n'},
+        {"source", required_argument, 0, 's'},
+        {"destination", required_argument, 0, 'd'},
         {"cmd", no_argument, &userInput.cmd_flag, 1},
         {"preset", required_argument, 0, 'p'},
         {"out-format", required_argument, 0, 'o'},
@@ -51,12 +53,13 @@ int main(int argc, char **argv) {
     const static std::unordered_map<std::string,int> tools{
         {"align",1},
         {"eval",2},
-        {"subgraph",3}
+        {"subgraph",3},
+        {"dijkstra",4}
     };
     while (arguments) { // loop through argv
         
         int option_index = 0;
-        c = getopt_long(argc, argv, "-:v:f:p:g:n:j:o:r:h",
+        c = getopt_long(argc, argv, "-:d:s:v:f:p:g:n:j:o:r:h",
                         long_options, &option_index);
         
         if (optind < argc && !isPipe) // if pipe wasn't assigned already
@@ -93,6 +96,7 @@ int main(int argc, char **argv) {
                         break;
                     case 2:
                     case 3:
+                    case 4:
                         cmd = getArgs(optarg, argc, argv);
                         break;
                     default:
@@ -122,7 +126,9 @@ int main(int argc, char **argv) {
                 }
                 break;
             }
-                
+            case 'd':
+                userInput.destination = optarg;
+                break;
             case 'f': // input sequence
                 
                 if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
@@ -169,6 +175,9 @@ int main(int argc, char **argv) {
                         userInput.inFiles.push_back(argv[optind]);
                     }
                 }
+                break;
+            case 's':
+                userInput.source = optarg;
                 break;
             case 'o': // handle output (file or stdout)
                 userInput.outFile = optarg;
@@ -252,8 +261,6 @@ int main(int argc, char **argv) {
             printf("-f --input-sequence sequence input file (gfa1/2).\n");
             printf("-n --node-list list of nodes to retain in the subgraph.\n");
             printf("-o --out-format ouput to file or stdout (currently supports: GFA).\n");
-            printf("--sort-alignment output sorted alignment.\n");
-            printf("--output-terminal-alignments output terminal alignments.\n");
             exit(0);
         }
         Input in;
@@ -262,13 +269,11 @@ int main(int argc, char **argv) {
         threadPool.init(maxThreads); // initialize threadpool
         lg.verbose("GFA: " + userInput.inSequence);
         InSequences inSequences; // initialize sequence collection object
-        lg.verbose("Alignment object generated");
+        lg.verbose("Sequence object generated");
         
         if(userInput.inSequence != ""){
             
-            lg.verbose("Sequence object generated");
             in.read(inSequences); // read input content to inSequences container
-            
             std::vector<std::string> nodeList;
             std::string line; // Replace with your file's name
             std::ifstream file(userInput.nodeList);
@@ -287,6 +292,38 @@ int main(int argc, char **argv) {
                 report.reportStats(*subgraph, gSize, 0);
             }
             delete subgraph;
+        }
+        threadPool.join();
+    }else if (tools.at(action) == 4){
+        if (userInput.nodeList == "") {
+            printf("%s", strHelp);
+            printf("\nOptions:\n");
+            printf("-f --input-sequence sequence input file (gfa1/2).\n");
+            printf("-n --node-list list of nodes available to the search.\n");
+            printf("-s --source source node.\n");
+            printf("-d --destination destination node.\n");
+            exit(0);
+        }
+        Input in;
+        in.load(userInput); // load user input
+        lg.verbose("User input loaded");
+        threadPool.init(maxThreads); // initialize threadpool
+        lg.verbose("GFA: " + userInput.inSequence);
+        InSequences inSequences; // initialize sequence collection object
+        lg.verbose("Sequence object generated");
+        
+        if(userInput.inSequence != ""){
+            
+            in.read(inSequences); // read input content to inSequences container
+            std::vector<std::string> nodeList;
+            std::string line; // Replace with your file's name
+            std::ifstream file(userInput.nodeList);
+            while (std::getline(file, line))
+                nodeList.push_back(line);
+            file.close();
+            
+            lg.verbose("Node list read");
+            dijkstra(inSequences, nodeList, userInput.source, userInput.destination, userInput.dijkstraSteps);
         }
         threadPool.join();
     }

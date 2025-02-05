@@ -7,6 +7,7 @@
 #include <queue>
 #include <stack>
 #include <functional>
+#include <unordered_set>
 
 #include <parallel-hashmap/phmap.h>
 
@@ -61,11 +62,10 @@ void evalGFA(InSequences& InSequences, InAlignments& InAlignments) {
 
 void dijkstra(InSequences& inSequences, std::vector<std::string> nodeList, std::string source, std::string destination, uint32_t maxSteps) {
     
-    uint32_t steps = 0; // true if we reached a node in the original graph
+    uint32_t steps = 0, pId = 0; // true if we reached a node in the original graph
     std::vector<uint64_t> destinations;
-    FibonacciHeap<std::pair<const uint32_t,InSegment&>*> Q; // node priority queue Q
+    FibonacciHeap<std::pair<const uint32_t,std::vector<uint32_t>>*> Q; // node priority queue Q
     phmap::flat_hash_map<uint32_t,uint32_t> dist; // distance table
-    phmap::flat_hash_map<uint32_t,std::string> prev; // previous node
     phmap::flat_hash_map<std::string,uint32_t> nodes;
     inSequences.buildEdgeGraph();
     std::vector<std::vector<Edge>> &adjEdgeList = inSequences.getAdjEdgeList();
@@ -85,39 +85,56 @@ void dijkstra(InSequences& inSequences, std::vector<std::string> nodeList, std::
             exit(EXIT_FAILURE);
         }
     }
-    dist[nodes[source]] = 0;
-    InSegment &segment = inSequences.findSegmentBySUId(nodes[source]);
-    std::pair<const uint32_t,InSegment&> u = std::make_pair(headersToIds[source], std::ref(segment));
-    Q.insert(&u, 0); // append source node
-
+    lg.verbose("Nodelist loaded");
+    dist[pId] = 0;
+    std::vector<uint32_t> firstPath;
+    firstPath.push_back(nodes[source]);
+    std::pair<const uint32_t,std::vector<uint32_t>> *u = new std::pair<const uint32_t,std::vector<uint32_t>>(pId++, firstPath);
+    Q.insert(u, 0); // append source node
+    lg.verbose("Starting search");
     while (Q.size() > 0 && steps < maxSteps) { // the main loop
-        std::pair<const uint32_t,InSegment&> u = *Q.extractMin(); // remove and return best vertex
-            
-        for(auto v : adjEdgeList.at(u.first)) {
-            InSegment &segment = inSequences.findSegmentBySUId(v.id);
-            if (nodes.find(segment.getSeqHeader()) != nodes.end()) {
-                dist[v.id] = std::numeric_limits<uint8_t>::max();
-                std::pair<const uint32_t,InSegment&> u = std::make_pair(v.id, std::ref(segment));
-                Q.insert(&u, std::numeric_limits<uint8_t>::max());
-                uint32_t alt = dist[u.first] + 1;
-                if (alt < dist[v.id]) {
-                    prev[v.id] = u.first;
-                    dist[v.id] = alt;
-                    Q.decreaseKey(&u, alt);
+        std::pair<const uint32_t,std::vector<uint32_t>> u = *Q.extractMin(); // remove and return best segment
+        InSegment &segment = inSequences.findSegmentBySUId(u.second.back());
+        std::cout<<"we are at segment: "<<segment.getSeqHeader()<<std::endl;
+        if (segment.getSeqHeader() == destination) {
+            bool hamiltonian = true;
+            std::cout<<"destination found."<<std::endl;
+            std::unordered_set<uint32_t> pathNodes(u.second.begin(), u.second.end());
+            for (auto n : u.second) {
+                InSegment &segment = inSequences.findSegmentBySUId(n);
+                std::cout<<segment.getSeqHeader()<<",";
+            }
+            std::cout<<std::endl;
+                
+            for (auto& it: nodes) {
+                auto found = pathNodes.find(it.second);
+                if (found == pathNodes.end()) {
+                    std::cout<<"This is not a Hamiltonian path."<<std::endl;
+                    dist[pId] = std::numeric_limits<uint32_t>::max();
+                    hamiltonian = false;
+                    break;
                 }
+            }
+            if (hamiltonian) {
+                std::cout<<"Hamiltonian path found."<<std::endl;
+                break;
+            }else {
+                continue;
+            }
+        }
+        for(auto v : adjEdgeList.at(segment.getuId())) {
+            InSegment &nextSegment = inSequences.findSegmentBySUId(v.id);
+            if (nodes.find(nextSegment.getSeqHeader()) != nodes.end()) {
+                std::cout<<"inspecting segment: "<<nextSegment.getSeqHeader()<<std::endl;
+                uint32_t alt = dist[pId] + 1;
+                std::vector<uint32_t> newPath(u.second);
+                newPath.push_back(v.id);
+                std::pair<const uint32_t,std::vector<uint32_t>> *u = new std::pair<const uint32_t,std::vector<uint32_t>>(pId++, newPath);
+                Q.insert(u, alt);
+                dist[pId] = alt;
             }
         }
         ++steps;
     }
-//    std::deque<std::string> S;
-//    std::string u = destination;
-//    if (prev.find(u) != prev.end() || u == source) {
-//        while (true) {
-//            S.push_front(u);
-//            u = prev[u];
-//        }
-//    }
-//    for (const auto& node : S)
-//        std::cout << node << " ";
-//    std::cout << std::endl;
+    lg.verbose("Search completed");
 }
