@@ -169,5 +169,7 @@ void dijkstra(InSequences& inSequences, std::vector<std::string> nodeList, std::
         }
         ++steps;
     }
+    if (steps >= maxSteps)
+        std::cout<<"Reached maximum number of steps ("<<+steps<<")"<<std::endl;
     lg.verbose("Search completed");
 }
