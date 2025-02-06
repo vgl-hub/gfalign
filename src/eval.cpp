@@ -148,7 +148,7 @@ void dijkstra(InSequences& inSequences, std::vector<std::string> nodeList, std::
                 continue;
             }
         }
-        uint32_t alt = dist[pId] + 1;
+        uint32_t alt = dist[u.first] + 1;
         for(auto v : adjEdgeList.at(segment.getuId())) {
             
             if (u.second.path.back().orientation != '0' && u.second.path.back().orientation != v.orientation0)
