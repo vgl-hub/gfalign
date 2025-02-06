@@ -33,6 +33,7 @@ int main(int argc, char **argv) {
         {"input-reads", required_argument, 0, 'r'},
         {"input-alignment", required_argument, 0, 'g'},
         {"node-list", required_argument, 0, 'n'},
+        {"max-steps", required_argument, 0, 'm'},
         {"source", required_argument, 0, 's'},
         {"destination", required_argument, 0, 'd'},
         {"cmd", no_argument, &userInput.cmd_flag, 1},
@@ -59,7 +60,7 @@ int main(int argc, char **argv) {
     while (arguments) { // loop through argv
         
         int option_index = 0;
-        c = getopt_long(argc, argv, "-:d:s:v:f:p:g:n:j:o:r:h",
+        c = getopt_long(argc, argv, "-:d:s:v:f:p:g:m:n:j:o:r:h",
                         long_options, &option_index);
         
         if (optind < argc && !isPipe) // if pipe wasn't assigned already
@@ -149,6 +150,9 @@ int main(int argc, char **argv) {
                     userInput.inAlign = optarg;
                     userInput.stats_flag = true;
                 }
+                break;
+            case 'm':
+                userInput.dijkstraSteps = atoi(optarg);
                 break;
             case 'n': // node list
                 if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
@@ -298,10 +302,11 @@ int main(int argc, char **argv) {
         if (userInput.nodeList == "") {
             printf("%s", strHelp);
             printf("\nOptions:\n");
-            printf("-f --input-sequence sequence input file (gfa1/2).\n");
-            printf("-n --node-list list of nodes available to the search.\n");
-            printf("-s --source source node.\n");
-            printf("-d --destination destination node.\n");
+            printf("-f --input-sequence <filename> sequence input file (gfa1/2).\n");
+            printf("-n --node-list <filename> list of nodes available to the search.\n");
+            printf("-s --source <string> source node.\n");
+            printf("-d --destination <string> destination node.\n");
+            printf("-m --max-steps <int> limit graph exploration.\n");
             exit(0);
         }
         Input in;

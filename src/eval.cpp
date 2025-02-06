@@ -121,28 +121,28 @@ void dijkstra(InSequences& inSequences, std::vector<std::string> nodeList, std::
     while (Q.size() > 0 && steps < maxSteps) { // the main loop
         std::pair<const uint32_t,Path> u = *Q.extractMin(); // remove and return best segment
         InSegment &segment = inSequences.findSegmentBySUId(u.second.path.back().id);
-        std::cout<<"we are at segment: "<<segment.getSeqHeader()<<std::endl;
+        lg.verbose("We are at segment: " + segment.getSeqHeader());
         if (segment.getSeqHeader() == destination) {
             bool hamiltonian = true;
-            std::cout<<"destination found."<<std::endl;
+            lg.verbose("Destination found.");
             std::unordered_set<uint32_t> pathNodes = u.second.pathToSet();
             for (auto n : u.second.path) {
                 InSegment &segment = inSequences.findSegmentBySUId(n.id);
-                std::cout<<segment.getSeqHeader()<<",";
+                std::cout<<segment.getSeqHeader()<<n.orientation<<",";
             }
             std::cout<<std::endl;
                 
             for (auto& it: nodes) {
                 auto found = pathNodes.find(it.second);
                 if (found == pathNodes.end()) {
-                    std::cout<<"This is not a Hamiltonian path."<<std::endl;
+                    lg.verbose("This is not a Hamiltonian path.");
                     dist[pId] = std::numeric_limits<uint32_t>::max();
                     hamiltonian = false;
                     break;
                 }
             }
             if (hamiltonian) {
-                std::cout<<"Hamiltonian path found."<<std::endl;
+                lg.verbose("Hamiltonian path found.");
                 break;
             }else {
                 continue;
@@ -154,9 +154,12 @@ void dijkstra(InSequences& inSequences, std::vector<std::string> nodeList, std::
             if (u.second.path.back().orientation != '0' && u.second.path.back().orientation != v.orientation0)
                 continue;
             
+            if (u.second.path.back().orientation == '0') // set orientation of the start node for this path
+                u.second.path.back().orientation = v.orientation0;
+            
             InSegment &nextSegment = inSequences.findSegmentBySUId(v.id);
             if (nodes.find(nextSegment.getSeqHeader()) != nodes.end()) {
-                std::cout<<"inspecting segment: "<<nextSegment.getSeqHeader()<<std::endl;
+                lg.verbose("Inspecting segment: " + nextSegment.getSeqHeader());
                 Path newPath(u.second.path);
                 newPath.push_back(v.id,v.orientation1);
                 std::pair<const uint32_t,Path> *u = new std::pair<const uint32_t,Path>(pId++, newPath);
