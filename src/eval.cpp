@@ -60,11 +60,37 @@ void evalGFA(InSequences& InSequences, InAlignments& InAlignments) {
     }
 }
 
+struct Step {
+    uint32_t id;
+    char orientation;
+};
+
+struct Path {
+    std::vector<Step> path;
+    
+    Path() {}
+    
+    Path(std::vector<Step> path) : path(path) {}
+    
+    void push_back(uint32_t id, char orientation) {
+        path.push_back(Step{id, orientation});
+    }
+    
+    std::unordered_set<uint32_t> pathToSet() {
+        
+        std::unordered_set<uint32_t> uIdSet;
+        
+        for (Step step : path)
+            uIdSet.insert(step.id);
+        return uIdSet;
+    }
+};
+
 void dijkstra(InSequences& inSequences, std::vector<std::string> nodeList, std::string source, std::string destination, uint32_t maxSteps) {
     
     uint32_t steps = 0, pId = 0; // true if we reached a node in the original graph
     std::vector<uint64_t> destinations;
-    FibonacciHeap<std::pair<const uint32_t,std::vector<uint32_t>>*> Q; // node priority queue Q
+    FibonacciHeap<std::pair<const uint32_t,Path>*> Q; // node priority queue Q
     phmap::flat_hash_map<uint32_t,uint32_t> dist; // distance table
     phmap::flat_hash_map<std::string,uint32_t> nodes;
     inSequences.buildEdgeGraph();
@@ -87,21 +113,21 @@ void dijkstra(InSequences& inSequences, std::vector<std::string> nodeList, std::
     }
     lg.verbose("Nodelist loaded");
     dist[pId] = 0;
-    std::vector<uint32_t> firstPath;
-    firstPath.push_back(nodes[source]);
-    std::pair<const uint32_t,std::vector<uint32_t>> *u = new std::pair<const uint32_t,std::vector<uint32_t>>(pId++, firstPath);
+    Path firstPath;
+    firstPath.push_back(nodes[source],'+');
+    std::pair<const uint32_t,Path> *u = new std::pair<const uint32_t,Path>(pId++, firstPath);
     Q.insert(u, 0); // append source node
     lg.verbose("Starting search");
     while (Q.size() > 0 && steps < maxSteps) { // the main loop
-        std::pair<const uint32_t,std::vector<uint32_t>> u = *Q.extractMin(); // remove and return best segment
-        InSegment &segment = inSequences.findSegmentBySUId(u.second.back());
+        std::pair<const uint32_t,Path> u = *Q.extractMin(); // remove and return best segment
+        InSegment &segment = inSequences.findSegmentBySUId(u.second.path.back().id);
         std::cout<<"we are at segment: "<<segment.getSeqHeader()<<std::endl;
         if (segment.getSeqHeader() == destination) {
             bool hamiltonian = true;
             std::cout<<"destination found."<<std::endl;
-            std::unordered_set<uint32_t> pathNodes(u.second.begin(), u.second.end());
-            for (auto n : u.second) {
-                InSegment &segment = inSequences.findSegmentBySUId(n);
+            std::unordered_set<uint32_t> pathNodes = u.second.pathToSet();
+            for (auto n : u.second.path) {
+                InSegment &segment = inSequences.findSegmentBySUId(n.id);
                 std::cout<<segment.getSeqHeader()<<",";
             }
             std::cout<<std::endl;
@@ -122,14 +148,18 @@ void dijkstra(InSequences& inSequences, std::vector<std::string> nodeList, std::
                 continue;
             }
         }
+        uint32_t alt = dist[pId] + 1;
         for(auto v : adjEdgeList.at(segment.getuId())) {
+            
+            if (u.second.path.back().orientation != v.orientation0)
+                continue;
+            
             InSegment &nextSegment = inSequences.findSegmentBySUId(v.id);
             if (nodes.find(nextSegment.getSeqHeader()) != nodes.end()) {
                 std::cout<<"inspecting segment: "<<nextSegment.getSeqHeader()<<std::endl;
-                uint32_t alt = dist[pId] + 1;
-                std::vector<uint32_t> newPath(u.second);
-                newPath.push_back(v.id);
-                std::pair<const uint32_t,std::vector<uint32_t>> *u = new std::pair<const uint32_t,std::vector<uint32_t>>(pId++, newPath);
+                Path newPath(u.second.path);
+                newPath.push_back(v.id,v.orientation1);
+                std::pair<const uint32_t,Path> *u = new std::pair<const uint32_t,Path>(pId++, newPath);
                 Q.insert(u, alt);
                 dist[pId] = alt;
             }
