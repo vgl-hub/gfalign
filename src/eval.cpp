@@ -114,7 +114,7 @@ void dijkstra(InSequences& inSequences, std::vector<std::string> nodeList, std::
     lg.verbose("Nodelist loaded");
     dist[pId] = 0;
     Path firstPath;
-    firstPath.push_back(nodes[source],'+');
+    firstPath.push_back(nodes[source],'0');
     std::pair<const uint32_t,Path> *u = new std::pair<const uint32_t,Path>(pId++, firstPath);
     Q.insert(u, 0); // append source node
     lg.verbose("Starting search");
@@ -151,7 +151,7 @@ void dijkstra(InSequences& inSequences, std::vector<std::string> nodeList, std::
         uint32_t alt = dist[pId] + 1;
         for(auto v : adjEdgeList.at(segment.getuId())) {
             
-            if (u.second.path.back().orientation != v.orientation0)
+            if (u.second.path.back().orientation != '0' && u.second.path.back().orientation != v.orientation0)
                 continue;
             
             InSegment &nextSegment = inSequences.findSegmentBySUId(v.id);
