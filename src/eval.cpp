@@ -60,36 +60,6 @@ void evalGFA(InSequences& InSequences, InAlignments& InAlignments) {
     }
 }
 
-struct Step {
-    uint32_t id;
-    char orientation;
-};
-
-struct Path {
-    std::vector<Step> path;
-    phmap::flat_hash_map<uint32_t,uint32_t> nodes;
-    
-    Path() {}
-    
-    Path(std::vector<Step> path) : path(path) {}
-    
-    void push_back(uint32_t id, char orientation) {
-        path.push_back(Step{id, orientation});
-    }
-    
-    std::unordered_set<uint32_t> pathToSet() {
-        
-        std::unordered_set<uint32_t> uIdSet;
-        
-        for (Step step : path)
-            uIdSet.insert(step.id);
-        return uIdSet;
-    }
-    void nodeVisited() {
-        
-    }
-};
-
 struct Record {
     uint32_t uId, count;
     //char type;
@@ -98,6 +68,8 @@ struct Record {
 struct NodeTable {
     
     phmap::flat_hash_map<std::string,Record> records;
+    
+    NodeTable() {}
     
     NodeTable(std::string nodeFile, phmap::flat_hash_map<std::string,uint32_t> &lookupTable) {
         
@@ -133,6 +105,34 @@ struct NodeTable {
     }
 };
 
+
+struct Step {
+    uint32_t id;
+    char orientation;
+};
+
+struct Path {
+    std::vector<Step> path;
+    NodeTable nodeTable;
+    
+    Path() {}
+    
+    Path(NodeTable nodeTable) : nodeTable(nodeTable) {}
+    
+    void push_back(uint32_t id, char orientation) {
+        path.push_back(Step{id, orientation});
+    }
+    
+    std::unordered_set<uint32_t> pathToSet() {
+        
+        std::unordered_set<uint32_t> uIdSet;
+        
+        for (Step step : path)
+            uIdSet.insert(step.id);
+        return uIdSet;
+    }
+};
+
 void dijkstra(InSequences& inSequences, std::string nodeFile, std::string source, std::string destination, uint32_t maxSteps) {
     
     uint32_t steps = 0, pId = 0; // true if we reached a node in the original graph
@@ -150,7 +150,7 @@ void dijkstra(InSequences& inSequences, std::string nodeFile, std::string source
     nodeTable.add(source, {headersToIds[source],1});
     nodeTable.add(destination, {headersToIds[source],1});
     dist[pId] = 0;
-    Path firstPath;
+    Path firstPath(nodeTable);
     firstPath.push_back(nodeTable[source].uId,'0');
     std::pair<const uint32_t,Path> *u = new std::pair<const uint32_t,Path>(pId++, firstPath);
     Q.insert(u, 0); // append source node
@@ -158,16 +158,23 @@ void dijkstra(InSequences& inSequences, std::string nodeFile, std::string source
     while (Q.size() > 0 && steps < maxSteps) { // the main loop
         std::pair<const uint32_t,Path> u = *Q.extractMin(); // remove and return best segment
         InSegment &segment = inSequences.findSegmentBySUId(u.second.path.back().id);
-        lg.verbose("We are at segment: " + segment.getSeqHeader());
+        lg.verbose("We are at segment: " + segment.getSeqHeader() + u.second.path.back().orientation);
         if (segment.getSeqHeader() == destination) {
             bool hamiltonian = true;
             lg.verbose("Destination found.");
             std::unordered_set<uint32_t> pathNodes = u.second.pathToSet();
+            std::vector<std::string> uniques;
             for (auto n : u.second.path) {
                 InSegment &segment = inSequences.findSegmentBySUId(n.id);
                 std::cout<<segment.getSeqHeader()<<n.orientation<<",";
+                uniques.push_back(segment.getSeqHeader());
             }
-            std::cout<<std::endl;
+            
+            std::sort(uniques.begin(), uniques.end());
+            auto last = std::unique(uniques.begin(), uniques.end());
+            uniques.erase(last, uniques.end());
+            
+            std::cout<<" "<<uniques.size()<<std::endl;
                 
             for (auto& it: nodeTable.records) {
                 auto found = pathNodes.find(it.second.uId);
@@ -188,6 +195,9 @@ void dijkstra(InSequences& inSequences, std::string nodeFile, std::string source
         uint32_t alt = dist[u.first] + 1;
         for(auto v : adjEdgeList.at(segment.getuId())) {
             
+//            if (v.id == nodeTable[destination].uId)
+//                alt += 2000;
+            
             if (u.second.path.back().orientation != '0' && u.second.path.back().orientation != v.orientation0)
                 continue;
             
@@ -195,9 +205,11 @@ void dijkstra(InSequences& inSequences, std::string nodeFile, std::string source
                 u.second.path.back().orientation = v.orientation0;
             
             InSegment &nextSegment = inSequences.findSegmentBySUId(v.id);
-            if (nodeTable.records.find(nextSegment.getSeqHeader()) != nodeTable.records.end()) {
-                lg.verbose("Inspecting segment: " + nextSegment.getSeqHeader());
-                Path newPath(u.second.path);
+            auto got = u.second.nodeTable.records.find(nextSegment.getSeqHeader());
+            if (got != u.second.nodeTable.records.end() && got->second.count > 0) {
+                --got->second.count;
+                lg.verbose("Inspecting segment: " + nextSegment.getSeqHeader() + v.orientation1);
+                Path newPath(u.second);
                 newPath.push_back(v.id,v.orientation1);
                 std::pair<const uint32_t,Path> *u = new std::pair<const uint32_t,Path>(pId++, newPath);
                 Q.insert(u, alt);
