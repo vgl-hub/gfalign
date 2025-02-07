@@ -159,7 +159,7 @@ int main(int argc, char **argv) {
                     userInput.pipeType = 'g'; // pipe input is a sequence
                 }else{ // input is a regular file
                     ifFileExists(optarg);
-                    userInput.nodeList = optarg;
+                    userInput.nodeFile = optarg;
                     userInput.stats_flag = true;
                 }
                 break;
@@ -259,7 +259,7 @@ int main(int argc, char **argv) {
             report.writeToStream(inSequences, userInput.outFile, userInput);
         }
     }else if (tools.at(action) == 3){
-        if (userInput.nodeList == "") {
+        if (userInput.nodeFile == "") {
             printf("%s", strHelp);
             printf("\nOptions:\n");
             printf("-f --input-sequence sequence input file (gfa1/2).\n");
@@ -280,7 +280,7 @@ int main(int argc, char **argv) {
             in.read(inSequences); // read input content to inSequences container
             std::vector<std::string> nodeList;
             std::string line; // Replace with your file's name
-            std::ifstream file(userInput.nodeList);
+            std::ifstream file(userInput.nodeFile);
             while (std::getline(file, line))
                 nodeList.push_back(line);
             file.close();
@@ -299,7 +299,7 @@ int main(int argc, char **argv) {
         }
         threadPool.join();
     }else if (tools.at(action) == 4){
-        if (userInput.nodeList == "") {
+        if (userInput.nodeFile == "") {
             printf("%s", strHelp);
             printf("\nOptions:\n");
             printf("-f --input-sequence <filename> sequence input file (gfa1/2).\n");
@@ -320,15 +320,7 @@ int main(int argc, char **argv) {
         if(userInput.inSequence != ""){
             
             in.read(inSequences); // read input content to inSequences container
-            std::vector<std::string> nodeList;
-            std::string line; // Replace with your file's name
-            std::ifstream file(userInput.nodeList);
-            while (std::getline(file, line))
-                nodeList.push_back(line);
-            file.close();
-            
-            lg.verbose("Node list read");
-            dijkstra(inSequences, nodeList, userInput.source, userInput.destination, userInput.dijkstraSteps);
+            dijkstra(inSequences, userInput.nodeFile, userInput.source, userInput.destination, userInput.dijkstraSteps);
         }
         threadPool.join();
     }

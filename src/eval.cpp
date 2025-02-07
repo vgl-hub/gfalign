@@ -67,6 +67,7 @@ struct Step {
 
 struct Path {
     std::vector<Step> path;
+    phmap::flat_hash_map<uint32_t,uint32_t> nodes;
     
     Path() {}
     
@@ -84,15 +85,60 @@ struct Path {
             uIdSet.insert(step.id);
         return uIdSet;
     }
+    void nodeVisited() {
+        
+    }
 };
 
-void dijkstra(InSequences& inSequences, std::vector<std::string> nodeList, std::string source, std::string destination, uint32_t maxSteps) {
+struct Record {
+    uint32_t uId, count;
+    //char type;
+};
+
+struct NodeTable {
+    
+    phmap::flat_hash_map<std::string,Record> records;
+    
+    NodeTable(std::string nodeFile, phmap::flat_hash_map<std::string,uint32_t> &lookupTable) {
+        
+        std::string line;
+        std::ifstream file(nodeFile);
+        while (std::getline(file, line)) {
+            
+            std::vector<std::string> lineVec = readDelimited(line, "\t");
+            
+            auto got = lookupTable.find(lineVec.at(0));
+            uint32_t count = 1;
+            if (lineVec.size() > 1)
+                count = std::stoi(lineVec.at(1));
+            
+            if (got != lookupTable.end()) {
+                Record record{got->second,count};
+                records.insert(std::make_pair(lineVec.at(0),record));
+            }else{
+                fprintf(stderr, "Error: node not in graph (pIUd: %s)\n", lineVec.at(0).c_str());
+                exit(EXIT_FAILURE);
+            }
+        }
+        file.close();
+        lg.verbose("Node table read");
+    }
+    
+    Record operator [](std::string node) const {
+        return records.at(node);
+    }
+    
+    void add(std::string node, Record record) {
+        records.insert(std::make_pair(node,record));
+    }
+};
+
+void dijkstra(InSequences& inSequences, std::string nodeFile, std::string source, std::string destination, uint32_t maxSteps) {
     
     uint32_t steps = 0, pId = 0; // true if we reached a node in the original graph
     std::vector<uint64_t> destinations;
     FibonacciHeap<std::pair<const uint32_t,Path>*> Q; // node priority queue Q
     phmap::flat_hash_map<uint32_t,uint32_t> dist; // distance table
-    phmap::flat_hash_map<std::string,uint32_t> nodes;
     inSequences.buildEdgeGraph();
     std::vector<std::vector<Edge>> &adjEdgeList = inSequences.getAdjEdgeList();
      // get the headers to uIds table to look for the header
@@ -100,21 +146,12 @@ void dijkstra(InSequences& inSequences, std::vector<std::string> nodeList, std::
     phmap::flat_hash_map<std::string, unsigned int> &headersToIds = *inSequences.getHash1();
     
     // map node names to internal ids
-    nodeList.push_back(source);
-    nodeList.push_back(destination);
-    for (std::string node : nodeList) {
-        phmap::flat_hash_map<std::string, unsigned int>::const_iterator got = headersToIds.find(node);
-        if (got != headersToIds.end()) {
-            nodes[node] = got->second;
-        }else{
-            fprintf(stderr, "Error: node not in graph (pIUd: %s)\n", node.c_str());
-            exit(EXIT_FAILURE);
-        }
-    }
-    lg.verbose("Nodelist loaded");
+    NodeTable nodeTable(nodeFile, headersToIds);
+    nodeTable.add(source, {headersToIds[source],1});
+    nodeTable.add(destination, {headersToIds[source],1});
     dist[pId] = 0;
     Path firstPath;
-    firstPath.push_back(nodes[source],'0');
+    firstPath.push_back(nodeTable[source].uId,'0');
     std::pair<const uint32_t,Path> *u = new std::pair<const uint32_t,Path>(pId++, firstPath);
     Q.insert(u, 0); // append source node
     lg.verbose("Starting search");
@@ -132,8 +169,8 @@ void dijkstra(InSequences& inSequences, std::vector<std::string> nodeList, std::
             }
             std::cout<<std::endl;
                 
-            for (auto& it: nodes) {
-                auto found = pathNodes.find(it.second);
+            for (auto& it: nodeTable.records) {
+                auto found = pathNodes.find(it.second.uId);
                 if (found == pathNodes.end()) {
                     lg.verbose("This is not a Hamiltonian path.");
                     dist[pId] = std::numeric_limits<uint32_t>::max();
@@ -158,7 +195,7 @@ void dijkstra(InSequences& inSequences, std::vector<std::string> nodeList, std::
                 u.second.path.back().orientation = v.orientation0;
             
             InSegment &nextSegment = inSequences.findSegmentBySUId(v.id);
-            if (nodes.find(nextSegment.getSeqHeader()) != nodes.end()) {
+            if (nodeTable.records.find(nextSegment.getSeqHeader()) != nodeTable.records.end()) {
                 lg.verbose("Inspecting segment: " + nextSegment.getSeqHeader());
                 Path newPath(u.second.path);
                 newPath.push_back(v.id,v.orientation1);
