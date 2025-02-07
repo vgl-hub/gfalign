@@ -210,9 +210,10 @@ void dijkstra(InSequences& inSequences, std::string nodeFile, std::string source
             auto got = u.second.nodeTable.records.find(nextSegment.getSeqHeader());
             lg.verbose("We can visit this node n time: " + std::to_string(got->second.count));
             if (got != u.second.nodeTable.records.end() && got->second.count > 0) {
-                --got->second.count;
                 Path newPath(u.second);
                 newPath.push_back(v.id,v.orientation1);
+                auto got2 = newPath.nodeTable.records.find(nextSegment.getSeqHeader());
+                --got2->second.count;
                 std::pair<const uint32_t,Path> *u = new std::pair<const uint32_t,Path>(pId++, newPath);
                 Q.insert(u, alt);
                 dist[pId] = alt;
