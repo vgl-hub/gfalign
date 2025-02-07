@@ -87,6 +87,7 @@ struct NodeTable {
             if (got != lookupTable.end()) {
                 Record record{got->second,count};
                 records.insert(std::make_pair(lineVec.at(0),record));
+                lg.verbose("Added record: " + lineVec.at(0) + " " + std::to_string(record.count));
             }else{
                 fprintf(stderr, "Error: node not in graph (pIUd: %s)\n", lineVec.at(0).c_str());
                 exit(EXIT_FAILURE);
@@ -205,10 +206,11 @@ void dijkstra(InSequences& inSequences, std::string nodeFile, std::string source
                 u.second.path.back().orientation = v.orientation0;
             
             InSegment &nextSegment = inSequences.findSegmentBySUId(v.id);
+            lg.verbose("Inspecting segment: " + nextSegment.getSeqHeader() + v.orientation1);
             auto got = u.second.nodeTable.records.find(nextSegment.getSeqHeader());
+            lg.verbose("We can visit this node n time: " + std::to_string(got->second.count));
             if (got != u.second.nodeTable.records.end() && got->second.count > 0) {
                 --got->second.count;
-                lg.verbose("Inspecting segment: " + nextSegment.getSeqHeader() + v.orientation1);
                 Path newPath(u.second);
                 newPath.push_back(v.id,v.orientation1);
                 std::pair<const uint32_t,Path> *u = new std::pair<const uint32_t,Path>(pId++, newPath);
