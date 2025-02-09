@@ -124,17 +124,51 @@ struct Path {
         path.push_back(Step{id, orientation});
     }
     
-    std::unordered_set<uint32_t> pathToSet() {
-        
+    std::unordered_set<uint32_t> pathToSet() const {
         std::unordered_set<uint32_t> uIdSet;
-        
         for (Step step : path)
             uIdSet.insert(step.id);
         return uIdSet;
     }
 };
 
-void dijkstra(InSequences& inSequences, std::string nodeFile, std::string source, std::string destination, uint32_t maxSteps) {
+bool evaluatePath (const Path &path, InSequences &inSequences, phmap::flat_hash_map<uint32_t,uint32_t> &dist, NodeTable &nodeTable, const uint32_t pId, const uint32_t destinationId) {
+    
+    Step lastStep = path.path.back();
+    InSegment &segment = inSequences.findSegmentBySUId(lastStep.id);
+    lg.verbose("We are at segment: " + segment.getSeqHeader() + lastStep.orientation);
+    if (lastStep.id != destinationId)
+        return false;
+    
+    lg.verbose("Destination found.");
+    std::unordered_set<uint32_t> pathNodes = path.pathToSet();
+    std::vector<std::string> uniques;
+    for (auto n : path.path) {
+        InSegment &segment = inSequences.findSegmentBySUId(n.id);
+        std::cout<<segment.getSeqHeader()<<n.orientation<<",";
+        uniques.push_back(segment.getSeqHeader());
+    }
+    std::sort(uniques.begin(), uniques.end());
+    auto last = std::unique(uniques.begin(), uniques.end());
+    uniques.erase(last, uniques.end());
+    std::cout<<" "<<uniques.size()<<std::endl;
+    
+    bool hamiltonian = true;
+    for (auto& it: nodeTable.records) {
+        auto found = pathNodes.find(it.second.uId);
+        if (found == pathNodes.end()) {
+            lg.verbose("This is not a Hamiltonian path.");
+            dist[pId] = std::numeric_limits<uint32_t>::max();
+            hamiltonian = false;
+            break;
+        }
+    }
+    if (hamiltonian)
+        lg.verbose("Hamiltonian path found.");
+    return true;
+}
+
+void dijkstra(InSequences &inSequences, std::string nodeFile, std::string source, std::string destination, uint32_t maxSteps) {
     
     uint32_t steps = 0, pId = 0; // true if we reached a node in the original graph
     std::vector<uint64_t> destinations;
@@ -149,7 +183,7 @@ void dijkstra(InSequences& inSequences, std::string nodeFile, std::string source
     // map node names to internal ids
     NodeTable nodeTable(nodeFile, headersToIds);
     nodeTable.add(source, {headersToIds[source],1});
-    nodeTable.add(destination, {headersToIds[source],1});
+    nodeTable.add(destination, {headersToIds[destination],1});
     dist[pId] = 0;
     Path firstPath(nodeTable);
     firstPath.push_back(nodeTable[source].uId,'0');
@@ -158,43 +192,13 @@ void dijkstra(InSequences& inSequences, std::string nodeFile, std::string source
     lg.verbose("Starting search");
     while (Q.size() > 0 && steps < maxSteps) { // the main loop
         std::pair<const uint32_t,Path> u = *Q.extractMin(); // remove and return best segment
-        InSegment &segment = inSequences.findSegmentBySUId(u.second.path.back().id);
-        lg.verbose("We are at segment: " + segment.getSeqHeader() + u.second.path.back().orientation);
-        if (segment.getSeqHeader() == destination) {
-            bool hamiltonian = true;
-            lg.verbose("Destination found.");
-            std::unordered_set<uint32_t> pathNodes = u.second.pathToSet();
-            std::vector<std::string> uniques;
-            for (auto n : u.second.path) {
-                InSegment &segment = inSequences.findSegmentBySUId(n.id);
-                std::cout<<segment.getSeqHeader()<<n.orientation<<",";
-                uniques.push_back(segment.getSeqHeader());
-            }
-            
-            std::sort(uniques.begin(), uniques.end());
-            auto last = std::unique(uniques.begin(), uniques.end());
-            uniques.erase(last, uniques.end());
-            
-            std::cout<<" "<<uniques.size()<<std::endl;
-                
-            for (auto& it: nodeTable.records) {
-                auto found = pathNodes.find(it.second.uId);
-                if (found == pathNodes.end()) {
-                    lg.verbose("This is not a Hamiltonian path.");
-                    dist[pId] = std::numeric_limits<uint32_t>::max();
-                    hamiltonian = false;
-                    break;
-                }
-            }
-            if (hamiltonian) {
-                lg.verbose("Hamiltonian path found.");
-                break;
-            }else {
-                continue;
-            }
-        }
+        bool pathFound = false;
+        pathFound = evaluatePath(u.second, inSequences, dist, nodeTable, pId, nodeTable[destination].uId);
+        if (pathFound)
+            continue;
+        
         uint32_t alt = dist[u.first] + 1;
-        for(auto v : adjEdgeList.at(segment.getuId())) {
+        for(auto v : adjEdgeList.at(u.second.path.back().id)) {
             
 //            if (v.id == nodeTable[destination].uId)
 //                alt += 2000;
