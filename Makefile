@@ -53,6 +53,8 @@ debug: CXXFLAGS += -DDEBUG
 debug: CCFLAGS += -DDEBUG
 debug: head
 
+all: head validate regenerate
+
 $(GFALIGN_OBJS): %: $(BINDIR)/%
 	@
 
