@@ -1,8 +1,8 @@
-CXX = g++
+CXX ?= g++
 INCLUDE_DIR += -I./include -Igfalibs/include
 WARNINGS = -Wall -Wextra
 
-CXXFLAGS = -g --std=c++14 -O3 $(INCLUDE_DIR) $(WARNINGS)
+CXXFLAGS = -g --std=c++14 -O3 $(INCLUDE_DIR) $(WARNINGS) $(CFLAGS)
 
 TARGET = gfalign
 TEST_TARGET = validate
