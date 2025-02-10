@@ -26,9 +26,9 @@ class Input {
     
 public:
     
-    void load(UserInputGfalign userInput);
+    void loadInput(UserInputGfalign userInput);
     
-    void read(InSequences& inSequence);
+    void read();
     
     void read(InAlignments& inAlignments);
     

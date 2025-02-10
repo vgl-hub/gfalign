@@ -28,7 +28,7 @@
 
 #include "fibonacci-heap.h"
 #include "alignments.h"
-#include "input.h"
+#include "input-gfalign.h"
 #include "eval.h"
 
 void evalGFA(InSequences& InSequences, InAlignments& InAlignments) {

@@ -38,7 +38,7 @@ else
 endif
 
 #gfalign
-GFALIGN_OBJS := main alignments input eval
+GFALIGN_OBJS := main alignments input-gfalign eval
 GFALIGN_BINS := $(addprefix $(BINDIR)/, $(GFALIGN_OBJS))
 
 #gfalibs
