@@ -1,1 +1,1 @@
-build/bin/rdeval-validate validateFiles
+build/bin/gfalign-validate validateFiles

@@ -1,1 +1,1 @@
-"build/bin/rdeval-validate.exe" validateFiles
+"build/bin/gfalign-validate.exe" validateFiles

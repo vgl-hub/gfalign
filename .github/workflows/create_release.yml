@@ -22,7 +22,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
       with:
         tag_name: ${{ github.ref }}
-        release_name: rdeval ${{ github.ref }}
+        release_name: gfalign ${{ github.ref }}
         body: |
           Changes in this Release
         draft: false
@@ -50,21 +50,15 @@ jobs:
       - if: matrix.os == 'macos-latest'
         name: Build
         run: |
-          brew install htslib
-          INCLUDE_DIR="-I/opt/homebrew/opt/openssl@3/include/ \
-                       -I/opt/homebrew/Cellar/htslib/1.21/include/" \
-              LDFLAGS="-L/opt/homebrew/Cellar/openssl@3/3.4.0/lib \
-                       -L/opt/homebrew/Cellar/htslib/1.21/lib" \
           make all -j
       - if: matrix.os == 'ubuntu-latest'
         name: Build
         run: |
-          sudo apt-get install libhts-dev
           make all -j
       - name: Zip
         uses: papeloto/action-zip@v1
         with:
-          files: build/bin/rdeval
+          files: build/bin/gfalign
           dest: result.zip
       - name: Add binaries
         uses: actions/upload-release-asset@v1
@@ -73,7 +67,7 @@ jobs:
         with:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
           asset_path: result.zip
-          asset_name: rdeval.${{ github.ref_name }}-${{matrix.OS_NAME}}.zip
+          asset_name: gfalign.${{ github.ref_name }}-${{matrix.OS_NAME}}.zip
           asset_content_type: application/zip
 
   add_submodules:
@@ -97,5 +91,5 @@ jobs:
         with:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
           asset_path: result.zip
-          asset_name: rdeval.${{ github.ref_name }}-with_submodules.zip
+          asset_name: gfalign.${{ github.ref_name }}-with_submodules.zip
           asset_content_type: application/zip
