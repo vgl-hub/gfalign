@@ -6,6 +6,7 @@
 #include <vector>
 #include <queue>
 #include <stack>
+#include <unordered_set>
 
 #include <iostream>
 #include <fstream>
@@ -27,6 +28,7 @@
 #include "input-filters.h"
 #include "input-gfa.h"
 
+#include "nodetable.h"
 #include "alignments.h"
 #include "eval.h"
 #include "output.h" // output classes
@@ -34,6 +36,24 @@
 
 void Input::loadInput(UserInputGfalign userInput) {
     this->userInput = userInput;
+	
+	if(userInput.inSequence != ""){
+		lg.verbose("GFA: " + userInput.inSequence);
+		stream = streamObj.openStream(this->userInput, 'f');
+		readGFA(this->inSequences, userInput, stream);
+		jobWait(threadPool);
+		inSequences.updateStats();
+		lg.verbose("Sequence object generated");
+		if (userInput.stats_flag) {
+			Report report;
+			report.reportStats(inSequences, 0, 0);
+		}
+	}
+	if(userInput.inAlign != ""){
+		lg.verbose("Alignment: " + userInput.inAlign);
+		read(this->inAlignments); // read input content to inAlignments container
+		jobWait(threadPool);
+	}
 }
 
 void Input::read(InAlignments& inAlignments) {
@@ -44,19 +64,6 @@ void Input::read(InAlignments& inAlignments) {
 
 void Input::read() {
     
-    InSequences inSequences;
-    if(userInput.inSequence != ""){
-        lg.verbose("GFA: " + userInput.inSequence);
-        stream = streamObj.openStream(userInput, 'f');
-        readGFA(inSequences, userInput, stream);
-        jobWait(threadPool);
-        inSequences.updateStats();
-        lg.verbose("Sequence object generated");
-        if (userInput.stats_flag) {
-            Report report;
-            report.reportStats(inSequences, 0, 0);
-        }
-    }
     switch (userInput.mode) {
         case 0: { // graph alignment
             
@@ -81,9 +88,9 @@ void Input::read() {
                     inAlignments.outAlignments();
             }
             if(userInput.inAlign != "" && userInput.outFile != ""){
-                evalGFA(inSequences, inAlignments);
+                evalGFA(this->inSequences, inAlignments);
                 Report report;
-                report.writeToStream(inSequences, userInput.outFile, userInput);
+                report.writeToStream(this->inSequences, userInput.outFile, userInput);
             }
             break;
         }
@@ -105,7 +112,7 @@ void Input::read() {
         break;
         }
         case 3: { // path search
-                dijkstra(inSequences, userInput.nodeFile, userInput.source, userInput.destination, userInput.dijkstraSteps);
+			dijkstra(this->inSequences, this->inAlignments, userInput.nodeFile, userInput.source, userInput.destination, userInput.dijkstraSteps);
             break;
         }
     }

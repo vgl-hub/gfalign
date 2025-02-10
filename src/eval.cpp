@@ -25,8 +25,8 @@
 #include "input-filters.h"
 #include "input-gfa.h"
 
-
 #include "fibonacci-heap.h"
+#include "nodetable.h"
 #include "alignments.h"
 #include "input-gfalign.h"
 #include "eval.h"
@@ -60,79 +60,7 @@ void evalGFA(InSequences& InSequences, InAlignments& InAlignments) {
     }
 }
 
-struct Record {
-    uint32_t uId, count;
-    //char type;
-};
-
-struct NodeTable {
-    
-    phmap::flat_hash_map<std::string,Record> records;
-    
-    NodeTable() {}
-    
-    NodeTable(std::string nodeFile, phmap::flat_hash_map<std::string,uint32_t> &lookupTable) {
-        
-        std::string line;
-        std::ifstream file(nodeFile);
-        while (std::getline(file, line)) {
-            
-            std::vector<std::string> lineVec = readDelimited(line, "\t");
-            
-            auto got = lookupTable.find(lineVec.at(0));
-            uint32_t count = 1;
-            if (lineVec.size() > 1)
-                count = std::stoi(lineVec.at(1));
-            
-            if (got != lookupTable.end()) {
-                Record record{got->second,count};
-                records.insert(std::make_pair(lineVec.at(0),record));
-                lg.verbose("Added record: " + lineVec.at(0) + " " + std::to_string(record.count));
-            }else{
-                fprintf(stderr, "Error: node not in graph (pIUd: %s)\n", lineVec.at(0).c_str());
-                exit(EXIT_FAILURE);
-            }
-        }
-        file.close();
-        lg.verbose("Node table read");
-    }
-    
-    Record operator [](std::string node) const {
-        return records.at(node);
-    }
-    
-    void add(std::string node, Record record) {
-        records.insert(std::make_pair(node,record));
-    }
-};
-
-
-struct Step {
-    uint32_t id;
-    char orientation;
-};
-
-struct Path {
-    std::vector<Step> path;
-    NodeTable nodeTable;
-    
-    Path() {}
-    
-    Path(NodeTable nodeTable) : nodeTable(nodeTable) {}
-    
-    void push_back(uint32_t id, char orientation) {
-        path.push_back(Step{id, orientation});
-    }
-    
-    std::unordered_set<uint32_t> pathToSet() const {
-        std::unordered_set<uint32_t> uIdSet;
-        for (Step step : path)
-            uIdSet.insert(step.id);
-        return uIdSet;
-    }
-};
-
-bool evaluatePath (const Path &path, InSequences &inSequences, phmap::flat_hash_map<uint32_t,uint32_t> &dist, NodeTable &nodeTable, const uint32_t pId, const uint32_t destinationId) {
+bool evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> alignmentPaths, phmap::flat_hash_map<uint32_t,uint32_t> &dist, NodeTable &nodeTable, const uint32_t pId, const uint32_t destinationId) {
     
     Step lastStep = path.path.back();
     InSegment &segment = inSequences.findSegmentBySUId(lastStep.id);
@@ -152,6 +80,10 @@ bool evaluatePath (const Path &path, InSequences &inSequences, phmap::flat_hash_
     auto last = std::unique(uniques.begin(), uniques.end());
     uniques.erase(last, uniques.end());
     std::cout<<" "<<uniques.size()<<std::endl;
+	
+	int dp[MAX_N][MAX_N];
+	for (Path alignmentPath : alignmentPaths)
+		alignPaths(1, -1, -1, path, alignmentPath, dp);
     
     bool hamiltonian = true;
     for (auto& it: nodeTable.records) {
@@ -168,7 +100,7 @@ bool evaluatePath (const Path &path, InSequences &inSequences, phmap::flat_hash_
     return true;
 }
 
-void dijkstra(InSequences &inSequences, std::string nodeFile, std::string source, std::string destination, uint32_t maxSteps) {
+void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string nodeFile, std::string source, std::string destination, uint32_t maxSteps) {
     
     uint32_t steps = 0, pId = 0; // true if we reached a node in the original graph
     std::vector<uint64_t> destinations;
@@ -179,6 +111,7 @@ void dijkstra(InSequences &inSequences, std::string nodeFile, std::string source
      // get the headers to uIds table to look for the header
     
     phmap::flat_hash_map<std::string, unsigned int> &headersToIds = *inSequences.getHash1();
+	std::vector<Path> alignmentPaths = inAlignments.getPaths(headersToIds);
     
     // map node names to internal ids
     NodeTable nodeTable(nodeFile, headersToIds);
@@ -193,7 +126,7 @@ void dijkstra(InSequences &inSequences, std::string nodeFile, std::string source
     while (Q.size() > 0 && steps < maxSteps) { // the main loop
         std::pair<const uint32_t,Path> u = *Q.extractMin(); // remove and return best segment
         bool pathFound = false;
-        pathFound = evaluatePath(u.second, inSequences, dist, nodeTable, pId, nodeTable[destination].uId);
+        pathFound = evaluatePath(u.second, inSequences, alignmentPaths, dist, nodeTable, pId, nodeTable[destination].uId);
         if (pathFound)
             continue;
         

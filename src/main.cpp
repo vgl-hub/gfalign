@@ -21,6 +21,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "log.h"
 #include "uid-generator.h"
@@ -40,6 +41,7 @@
 #include <zstream/ozstream.hpp>
 #include <zstream/ozstream_impl.hpp>
 
+#include "nodetable.h"
 #include "alignments.h"
 #include "input-gfalign.h"
 #include "main.h"
@@ -303,7 +305,6 @@ int main(int argc, char **argv) {
                             userInput.alignStats_flag = true;
                         }
                         break;
-                        
                     case 'j': // max threads
                         maxThreads = atoi(optarg);
                         break;
@@ -392,6 +393,7 @@ int main(int argc, char **argv) {
             static struct option long_options[] = { // struct mapping long options
                 {"destination", required_argument, 0, 'd'},
                 {"input-sequence", required_argument, 0, 'f'},
+				{"input-alignment", required_argument, 0, 'g'},
                 {"max-steps", required_argument, 0, 'm'},
                 {"node-file", required_argument, 0, 'n'},
                 {"out-format", required_argument, 0, 'o'},
@@ -409,7 +411,7 @@ int main(int argc, char **argv) {
             while (arguments) { // loop through argv
                 
                 int option_index = 1;
-                c = getopt_long(argc, argv, "-:d:f:j:m:n:o:s:vh",
+                c = getopt_long(argc, argv, "-:d:f:g:j:m:n:o:s:vh",
                                 long_options, &option_index);
                 
                 if (optind < argc && !isPipe) // if pipe wasn't assigned already
@@ -441,6 +443,15 @@ int main(int argc, char **argv) {
                             userInput.inSequence = optarg;
                         }
                         break;
+					case 'g': // input alignment
+						if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
+							userInput.pipeType = 'g'; // pipe input is a sequence
+						}else{ // input is a regular file
+							ifFileExists(optarg);
+							userInput.inAlign = optarg;
+							userInput.alignStats_flag = true;
+						}
+						break;
                     case 'm':
                         userInput.dijkstraSteps = atoi(optarg);
                         break;

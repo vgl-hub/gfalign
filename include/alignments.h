@@ -1,14 +1,66 @@
 #ifndef ALIGNMENTS_H
 #define ALIGNMENTS_H
 
-struct Alignments { // a collection of sequences
+struct Alignments { // collection of sequences
     
     std::vector<std::string*> alignments;
     unsigned int batchN;
     
 };
 
-class InAlignment{
+struct Step { // step in an alignment path
+	uint32_t id;
+	char orientation;
+	
+	inline bool operator==(const Step& step) const {
+		return this->id == step.id && this->orientation == step.orientation;
+	}
+	bool operator !=(const Step& step) const {
+		return this->id != step.id && this->orientation != step.orientation;
+	}
+};
+
+struct Path { // graph alignment path
+	std::vector<Step> path;
+	NodeTable nodeTable;
+	
+	Path() {}
+	
+	Path(NodeTable nodeTable) : nodeTable(nodeTable) {}
+	
+	uint32_t size() const {
+		return path.size();
+	}
+	
+	void push_back(uint32_t id, char orientation) {
+		path.push_back(Step{id, orientation});
+	}
+	
+	const Step& operator[](size_t index) const {
+		if (index >= size()) {
+			throw std::out_of_range("Index out of bounds");
+		}
+		return path[index];
+	}
+	
+	std::unordered_set<uint32_t> pathToSet() const {
+		std::unordered_set<uint32_t> uIdSet;
+		for (Step step : path)
+			uIdSet.insert(step.id);
+		return uIdSet;
+	}
+	
+	void print() const {
+		for (uint32_t i = 0; i<path.size(); ++i) {
+			std::cout<<path.at(i).id<<path.at(i).orientation;
+			if (i+1<path.size())
+				std::cout<<',';
+		}
+		std::cout<<std::endl;
+	}
+};
+
+class InAlignment{ // full graph alignment record (GAF)
     
     std::string qName;
     unsigned int qLen;
@@ -29,7 +81,10 @@ class InAlignment{
 public:
     
     InAlignment(std::vector<std::string> cols, std::vector<Tag> inTags, unsigned int pos);
-    std::string print();
+    
+	std::string print();
+	
+	Path GAFpathToPath(phmap::flat_hash_map<std::string, unsigned int> &headersToIds);
     
     friend class InAlignments;
     friend class AlignmentStats;
@@ -53,7 +108,7 @@ public:
         
 };
 
-class InAlignments{
+class InAlignments{ // collection of alignments
     
     int terminalAlignments_flag = 0;
     std::vector<Log> logs;
@@ -111,10 +166,17 @@ public:
     void countSupplementary(std::vector<InAlignment*> alignments);
     
     void sortAlignmentsByQStart(std::vector<InAlignment*>* alignments);
+	
+	std::vector<InAlignment*> getAlignments() const;
+	
+	std::vector<Path> getPaths(phmap::flat_hash_map<std::string, unsigned int> &headersToIds);
     
 };
 
 std::vector<InEdge> GAFpathToEdges(std::string path, phmap::flat_hash_map<std::string, unsigned int>* headersToIds);
+
+#define MAX_N 1001
+bool alignPaths(int8_t match_score, int8_t mismatch_score, int8_t gap_score, Path A, Path B, int dp[MAX_N][MAX_N]);
 
 
 #endif /* ALIGNMENTS_H */

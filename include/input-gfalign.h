@@ -14,6 +14,8 @@ struct UserInputGfalign : UserInput {
 class Input {
     
     UserInputGfalign userInput;
+	InSequences inSequences;
+	InAlignments inAlignments;
     
     //intermediates
     std::string h;
