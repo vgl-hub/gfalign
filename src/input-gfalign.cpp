@@ -75,7 +75,7 @@ void Input::read() {
                 inAlignments.sortAlignmentsByNameAscending();
                 inAlignments.markDuplicates();
                 
-                if(userInput.stats_flag)
+                if(userInput.alignStats_flag)
                     inAlignments.printStats();
                 else if (userInput.sortAlignment_flag)
                     inAlignments.outAlignments();

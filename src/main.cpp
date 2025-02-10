@@ -106,10 +106,10 @@ int main(int argc, char **argv) {
     if (got != tools.end()) {
         userInput.mode = got->second;
     }else{
-        fprintf(stderr, "mode '%s' does not exist. Terminating\n", argv[1]);
+        fprintf(stderr, "mode '%s' does not exist. Terminating.\n", argv[1]);
         return EXIT_FAILURE;
     }
-    
+
     switch (userInput.mode) {
         case 0: { // graph alignment
             std::string action, aligner = "GraphAligner", preset_type, preset = " -x vg", cmd;
@@ -120,8 +120,7 @@ int main(int argc, char **argv) {
                 {"input-reads", required_argument, 0, 'r'},
                 {"out-format", required_argument, 0, 'o'},
                 
-                {"sort-alignment", no_argument, &userInput.sortAlignment_flag, 1},
-                {"output-terminal-alignments", no_argument, &userInput.terminalAlignments_flag, 1},
+                {"graph-statistics", no_argument, &userInput.stats_flag, 1},
                 
                 {"threads", required_argument, 0, 'j'},
                 {"cmd", no_argument, &userInput.cmd_flag, 1},
@@ -133,7 +132,7 @@ int main(int argc, char **argv) {
             while (arguments) { // loop through argv
                 
                 int option_index = 1;
-                c = getopt_long(argc, argv, "-:f:g:h:j:o:p:r:v",
+                c = getopt_long(argc, argv, "-:f:g:j:o:p:r:vh",
                                 long_options, &option_index);
                 
                 if (optind < argc && !isPipe) // if pipe wasn't assigned already
@@ -158,20 +157,11 @@ int main(int argc, char **argv) {
                         }
                         break;
                     default: // handle positional arguments
-                        
-                        action = optarg;
-                        switch (tools.count(optarg) ? tools.at(optarg) : 0) {
-                            case 1:
-                                cmd = aligner + getArgs(optarg, argc, argv) + preset;
-                                std::cout<<"Invoking: "<<cmd<<std::endl;
-                                std::system(cmd.c_str());
-                                arguments = false;
-                                break;
-                            default:
-                                std::cout<<"Could not find command: "<<optarg<<std::endl;
-                                exit(1);
-                                break;
-                        }
+                        cmd = aligner + getArgs(optarg, argc, argv) + preset;
+                        std::cout<<"Invoking: "<<cmd<<std::endl;
+                        std::system(cmd.c_str());
+                        arguments = false;
+                        break;
                     case 0: // case for long options without short options
                         
                         //                if (strcmp(long_options[option_index].name,"line-length") == 0)
@@ -202,22 +192,19 @@ int main(int argc, char **argv) {
                             
                             ifFileExists(optarg);
                             userInput.inSequence = optarg;
-                            userInput.stats_flag = true;
                         }
                         break;
                     case 'g': // input alignment
                         if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
                             userInput.pipeType = 'g'; // pipe input is a sequence
                         }else{ // input is a regular file
-                            
                             ifFileExists(optarg);
                             userInput.inAlign = optarg;
-                            userInput.stats_flag = true;
+                            userInput.alignStats_flag = true;
                         }
                         break;
                     case 'j': // max threads
                         maxThreads = atoi(optarg);
-                        userInput.stats_flag = 1;
                         break;
                         
                     case 'r': // input reads
@@ -252,7 +239,7 @@ int main(int argc, char **argv) {
                         exit(0);
                 }
                 if (userInput.sortAlignment_flag || userInput.terminalAlignments_flag) // handle various cases in which the output should not include summary stats
-                    userInput.stats_flag = false;
+                    userInput.alignStats_flag = false;
             }
             break;
         }
@@ -262,6 +249,7 @@ int main(int argc, char **argv) {
                 {"input-alignment", required_argument, 0, 'g'},
                 {"out-format", required_argument, 0, 'o'},
                 
+                {"graph-statistics", no_argument, &userInput.stats_flag, 1},
                 {"sort-alignment", no_argument, &userInput.sortAlignment_flag, 1},
                 {"output-terminal-alignments", no_argument, &userInput.terminalAlignments_flag, 1},
                 
@@ -275,7 +263,7 @@ int main(int argc, char **argv) {
             while (arguments) { // loop through argv
                 
                 int option_index = 1;
-                c = getopt_long(argc, argv, "-:f:g:h:j:o:v",
+                c = getopt_long(argc, argv, "-:f:g:j:o:vh",
                                 long_options, &option_index);
                 
                 if (optind < argc && !isPipe) // if pipe wasn't assigned already
@@ -303,23 +291,20 @@ int main(int argc, char **argv) {
                         }else{ // input is a regular file
                             ifFileExists(optarg);
                             userInput.inSequence = optarg;
-                            userInput.stats_flag = true;
                         }
                         break;
                     case 'g': // input alignment
                         if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
                             userInput.pipeType = 'g'; // pipe input is a sequence
                         }else{ // input is a regular file
-                            
                             ifFileExists(optarg);
                             userInput.inAlign = optarg;
-                            userInput.stats_flag = true;
+                            userInput.alignStats_flag = true;
                         }
                         break;
                         
                     case 'j': // max threads
                         maxThreads = atoi(optarg);
-                        userInput.stats_flag = 1;
                         break;
                     case 'o': // handle output (file or stdout)
                         userInput.outFile = optarg;
@@ -347,6 +332,8 @@ int main(int argc, char **argv) {
                 {"node-file", required_argument, 0, 'n'},
                 {"out-format", required_argument, 0, 'o'},
                 
+                {"graph-statistics", no_argument, &userInput.stats_flag, 1},
+                
                 {"threads", required_argument, 0, 'j'},
                 {"cmd", no_argument, &userInput.cmd_flag, 1},
                 {"verbose", no_argument, &verbose_flag, 1},
@@ -357,14 +344,7 @@ int main(int argc, char **argv) {
             while (arguments) { // loop through argv
                 
                 int option_index = 1;
-                c = getopt_long(argc, argv, "-:f:h:j:n:o:v",
-                                long_options, &option_index);
-                
-                if (optind < argc && !isPipe) // if pipe wasn't assigned already
-                    isPipe = isDash(argv[optind]) ? true : false; // check if the argument to the option is a '-' and set it as pipe input
-                
-                if (optarg != nullptr && !isPipe) // case where pipe input is given as positional argument (input sequence file)
-                    isPipe = isDash(optarg) ? true : false;
+                c = getopt_long(argc, argv, "-:f:j:n:o:vh", long_options, &option_index);
                 
                 if (c == -1) // exit the loop if run out of options
                     break;
@@ -382,15 +362,12 @@ int main(int argc, char **argv) {
                         if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
                             userInput.pipeType = 'f'; // pipe input is a sequence
                         }else{ // input is a regular file
-                            
                             ifFileExists(optarg);
                             userInput.inSequence = optarg;
-                            userInput.stats_flag = true;
                         }
                         break;
                     case 'j': // max threads
                         maxThreads = atoi(optarg);
-                        userInput.stats_flag = 1;
                         break;
                     case 'o': // handle output (file or stdout)
                         userInput.outFile = optarg;
@@ -407,8 +384,8 @@ int main(int argc, char **argv) {
                         printf("-o --out-format ouput to file or stdout (currently supports: GFA).\n");
                         exit(0);
                 }
-                break;
             }
+            break;
         }
         case 3: { // path search
             static struct option long_options[] = { // struct mapping long options
@@ -418,6 +395,8 @@ int main(int argc, char **argv) {
                 {"node-file", required_argument, 0, 'n'},
                 {"out-format", required_argument, 0, 'o'},
                 {"source", required_argument, 0, 's'},
+                
+                {"graph-statistics", no_argument, &userInput.stats_flag, 1},
                 
                 {"threads", required_argument, 0, 'j'},
                 {"cmd", no_argument, &userInput.cmd_flag, 1},
@@ -429,7 +408,7 @@ int main(int argc, char **argv) {
             while (arguments) { // loop through argv
                 
                 int option_index = 1;
-                c = getopt_long(argc, argv, "-:f:h:j:n:o:v",
+                c = getopt_long(argc, argv, "-:d:f:j:m:n:o:s:vh",
                                 long_options, &option_index);
                 
                 if (optind < argc && !isPipe) // if pipe wasn't assigned already
@@ -457,10 +436,8 @@ int main(int argc, char **argv) {
                         if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
                             userInput.pipeType = 'f'; // pipe input is a sequence
                         }else{ // input is a regular file
-                            
                             ifFileExists(optarg);
                             userInput.inSequence = optarg;
-                            userInput.stats_flag = true;
                         }
                         break;
                     case 'm':
@@ -469,14 +446,12 @@ int main(int argc, char **argv) {
                     case 'n': // node list
                         ifFileExists(optarg);
                         userInput.nodeFile = optarg;
-                        userInput.stats_flag = true;
                         break;
                     case 's':
                         userInput.source = optarg;
                         break;
                     case 'j': // max threads
                         maxThreads = atoi(optarg);
-                        userInput.stats_flag = 1;
                         break;
                     case 'o': // handle output (file or stdout)
                         userInput.outFile = optarg;
