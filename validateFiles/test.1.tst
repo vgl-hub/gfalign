@@ -26,11 +26,11 @@ Gap L50 in scaffolds: 0
 Largest gap in scaffolds: 0
 Smallest gap in scaffolds: 0
 Base composition (A:C:G:T): 0:0:0:0
-GC content %: 0.00
+GC content %: nan
 # soft-masked bases: 0
-# segments: 0
-Total segment length: 0
-Average segment length: nan
+# segments: 2
+Total segment length: 120
+Average segment length: 60.00
 # gaps: 0
 # paths: 0
 +++Alignment summary+++: 
