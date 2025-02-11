@@ -49,26 +49,6 @@ InAlignment::InAlignment(std::vector<std::string> cols, std::vector<Tag> inTags,
     this->pos = pos;
 }
 
-uint32_t InAlignment::pathNodesCount() {
-	uint32_t nodeCount = 0;
-	size_t pos = 0;
-	std::string path = this->path;
-	while (path.size() != 0) {
-		if(path[pos] == '>' || path[pos] == '<' || pos == path.size()) {
-			if (pos == 0) {
-				pos++;
-				continue;
-			}
-			++nodeCount;
-			path.erase(0, pos);
-			pos = 0;
-		}else{
-			++pos;
-		}
-	}
-	return nodeCount;
-}
-
 std::string InAlignment::print() {
     
     std::string alignment =
@@ -132,6 +112,26 @@ bool InAlignment::isContained(phmap::flat_hash_set<std::string> &headers) {
 		}
 	}
 	return true;
+}
+
+uint32_t InAlignment::pathNodesCount() {
+	uint32_t nodeCount = 0;
+	size_t pos = 0;
+	std::string path = this->path;
+	while (path.size() != 0) {
+		if(path[pos] == '>' || path[pos] == '<' || pos == path.size()) {
+			if (pos == 0) {
+				pos++;
+				continue;
+			}
+			++nodeCount;
+			path.erase(0, pos);
+			pos = 0;
+		}else{
+			++pos;
+		}
+	}
+	return nodeCount;
 }
 
 InAlignments::~InAlignments() {
@@ -456,14 +456,16 @@ std::vector<Path> InAlignments::getPaths(phmap::flat_hash_map<std::string, unsig
 	return paths;
 }
 
-void InAlignments::filterAlignmentByNodelist(std::vector<std::string> nodelist, uint32_t minNodes) {
+void InAlignments::filterAlignmentByNodelist(std::vector<std::string> nodelist, int32_t minNodes) {
 	
 	phmap::flat_hash_set<std::string> headers(nodelist.begin(), nodelist.end());
 	
 	std::vector<InAlignment*> filteredAlignments;
 	
 	for(InAlignment* alignment : inAlignments) {
-		if (alignment->isContained(headers) && alignment->pathNodesCount() >= minNodes)
+		std::cout<<alignment->pathNodesCount()<<std::endl;
+		std::cout<<minNodes<<std::endl;
+		if (alignment->isContained(headers) && (int32_t)alignment->pathNodesCount() >= minNodes)
 			filteredAlignments.push_back(alignment);
 		else
 			delete alignment;
@@ -503,6 +505,7 @@ inline int needleman_wunsch(uint32_t n, uint32_t m, int dp[MAX_N][MAX_N], int8_t
 inline PairwisePathAlignment get_optimal_alignment(uint32_t n, uint32_t m, int dp[MAX_N][MAX_N], int8_t match_score, int8_t mismatch_score, Path &A, Path &B)
 {
 	Path SA, SB;
+	int32_t alignmentScore = 0;
 	int ii = n, jj = m;
 	while (ii != 0 || jj != 0) {
 		if (ii == 0){
@@ -532,7 +535,7 @@ inline PairwisePathAlignment get_optimal_alignment(uint32_t n, uint32_t m, int d
 	}
 	SA.reverse();
 	SB.reverse();
-	return PairwisePathAlignment(SA, SB);
+	return PairwisePathAlignment(SA, SB, alignmentScore);
 }
 
 PairwisePathAlignment alignPaths(int8_t match_score, int8_t mismatch_score, int8_t gap_score, Path A, Path B, int dp[MAX_N][MAX_N]) {

@@ -74,8 +74,9 @@ struct Path { // graph alignment path
 struct PairwisePathAlignment{
 	
 	Path A, B;
+	int32_t alignmentScore = 0;
 	
-	PairwisePathAlignment(Path A, Path B) : A(A), B(B){}
+	PairwisePathAlignment(Path A, Path B, int32_t alignmentScore) : A(A), B(B), alignmentScore(alignmentScore) {}
 	
 	void print(phmap::flat_hash_map<unsigned int, std::string> &idsToHeaders) const {
 		
@@ -122,9 +123,9 @@ public:
 	
 	Path GAFpathToPath(phmap::flat_hash_map<std::string, unsigned int> &headersToIds);
 	
-	uint32_t pathNodesCount();
-	
 	bool isContained(phmap::flat_hash_set<std::string> &headers);
+	
+	uint32_t pathNodesCount();
     
     friend class InAlignments;
     friend class AlignmentStats;
@@ -211,7 +212,7 @@ public:
 	
 	std::vector<Path> getPaths(phmap::flat_hash_map<std::string, unsigned int> &headersToIds);
 	
-	void filterAlignmentByNodelist(std::vector<std::string> nodelist, uint32_t minNodes);
+	void filterAlignmentByNodelist(std::vector<std::string> nodelist, int32_t minNodes);
     
 };
 
