@@ -61,6 +61,14 @@ struct Path { // graph alignment path
 		std::reverse(path.begin(), path.end());
 	}
 	
+	Path reverseComplement() {
+		Path rc = *this;
+		std::reverse(rc.path.begin(), rc.path.end());
+		for (Step step : rc.path)
+			step.orientation = (step.orientation == '+') ? '-' : '+';
+		return rc;
+	}
+	
 	void print() const {
 		for (uint32_t i = 0; i<path.size(); ++i) {
 			std::cout<<path.at(i).id<<path.at(i).orientation;

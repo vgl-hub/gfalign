@@ -83,8 +83,9 @@ bool evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> 
 	
 	int dp[MAX_N][MAX_N];
 	for (Path alignmentPath : alignmentPaths) {
-		PairwisePathAlignment alignment = alignPaths(1, -1, -1, path, alignmentPath, dp);
-		alignment.print(*inSequences.getHash2());
+		PairwisePathAlignment alignmentFw = alignPaths(1, -1, -1, path, alignmentPath, dp);
+		PairwisePathAlignment alignmentRc = alignPaths(1, -1, -1, path, alignmentPath.reverseComplement(), dp);
+		(alignmentFw.alignmentScore > alignmentRc.alignmentScore) ? alignmentFw.print(*inSequences.getHash2()) : alignmentRc.print(*inSequences.getHash2());
 	}
     bool hamiltonian = true;
     for (auto& it: nodeTable.records) {

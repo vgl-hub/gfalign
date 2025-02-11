@@ -522,14 +522,17 @@ inline PairwisePathAlignment get_optimal_alignment(uint32_t n, uint32_t m, int d
 				SA.push_back(A[ii-1].id, A[ii-1].orientation);
 				SB.push_back(B[jj-1].id, B[jj-1].orientation);
 				ii--; jj--;
+				alignmentScore += S;
 			}else if(dp[ii-1][jj] > dp[ii][jj-1]){
 				SA.push_back(A[ii-1].id, A[ii-1].orientation);
 				SB.push_back(-1, '0');
 				ii--;
+				alignmentScore -= 1;
 			}else{
 				SA.push_back(-1, '0');
 				SB.push_back(B[jj-1].id, B[jj-1].orientation);
 				jj--;
+				alignmentScore -= 1;
 			}
 		}
 	}
