@@ -121,6 +121,8 @@ public:
 	std::string print();
 	
 	Path GAFpathToPath(phmap::flat_hash_map<std::string, unsigned int> &headersToIds);
+	
+	bool isContained(phmap::flat_hash_set<std::string> &headers);
     
     friend class InAlignments;
     friend class AlignmentStats;
@@ -195,7 +197,7 @@ public:
     
     void markDuplicates();
     
-    void outAlignments();
+    void outputAlignments(std::string file);
     
     std::vector<std::vector<Edge>> getEdgeGraph();
     
@@ -206,6 +208,8 @@ public:
 	std::vector<InAlignment*> getAlignments() const;
 	
 	std::vector<Path> getPaths(phmap::flat_hash_map<std::string, unsigned int> &headersToIds);
+	
+	void filterAlignmentByNodelist(std::vector<std::string> nodelist);
     
 };
 

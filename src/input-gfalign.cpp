@@ -62,6 +62,17 @@ void Input::read(InAlignments& inAlignments) {
     inAlignments.load(userInput.inAlign, userInput.terminalAlignments_flag);
 }
 
+std::vector<std::string> Input::readNodelist() {
+	std::vector<std::string> nodelist;
+	std::string line; // Replace with your file's name
+	std::ifstream file(userInput.nodeFile);
+	while (std::getline(file, line))
+		nodelist.push_back(line);
+	file.close();
+	lg.verbose("Node list read");
+	return nodelist;
+}
+
 void Input::read() {
     
     switch (userInput.mode) {
@@ -69,42 +80,26 @@ void Input::read() {
             
         }
         case 1: { // graph evaluation
-            lg.verbose("GFA: " + userInput.inSequence);
-            InSequences inSequences; // initialize sequence collection object
-            InAlignments inAlignments; // initialize alignment collection object
-            lg.verbose("Alignment object generated");
 
             if(userInput.inAlign != ""){
-                
-                lg.verbose("Alignment: " + userInput.inAlign);
-                read(inAlignments); // read input content to inAlignments container
-                jobWait(threadPool);
-                inAlignments.sortAlignmentsByNameAscending();
-                inAlignments.markDuplicates();
+				this->inAlignments.sortAlignmentsByNameAscending();
+				this->inAlignments.markDuplicates();
                 
                 if(userInput.alignStats_flag)
-                    inAlignments.printStats();
+					this->inAlignments.printStats();
                 else if (userInput.sortAlignment_flag)
-                    inAlignments.outAlignments();
+					this->inAlignments.outputAlignments(userInput.outFile);
             }
             if(userInput.inAlign != "" && userInput.outFile != ""){
-                evalGFA(this->inSequences, inAlignments);
+                evalGFA(this->inSequences, this->inAlignments);
                 Report report;
                 report.writeToStream(this->inSequences, userInput.outFile, userInput);
             }
             break;
         }
         case 2: { // subgraph
-
-            std::vector<std::string> nodeList;
-            std::string line; // Replace with your file's name
-            std::ifstream file(userInput.nodeFile);
-            while (std::getline(file, line))
-                nodeList.push_back(line);
-            file.close();
-            
-            lg.verbose("Node list read");
-            InSequences *subgraph = inSequences.subgraph(nodeList);
+            std::vector<std::string> nodelist = readNodelist();
+            InSequences *subgraph = inSequences.subgraph(nodelist);
             Report report;
             if (userInput.outFile != "") // output sequences to file or stdout
                 report.writeToStream(*subgraph, userInput.outFile, userInput);
@@ -115,5 +110,12 @@ void Input::read() {
 			dijkstra(this->inSequences, this->inAlignments, userInput.nodeFile, userInput.source, userInput.destination, userInput.dijkstraSteps);
             break;
         }
+		case 4: { // alignment filtering
+			std::vector<std::string> nodelist = readNodelist();
+			this->inAlignments.filterAlignmentByNodelist(nodelist);
+			if (userInput.outFile != "")
+				this->inAlignments.outputAlignments(userInput.outFile);
+			break;
+		}
     }
 }

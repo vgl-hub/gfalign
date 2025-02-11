@@ -26,6 +26,7 @@
 #include "input-agp.h"
 #include "input-filters.h"
 #include "input-gfa.h"
+#include "output.h"
 
 #include "nodetable.h"
 #include "alignments.h"
@@ -90,6 +91,27 @@ Path InAlignment::GAFpathToPath(phmap::flat_hash_map<std::string, unsigned int> 
 		}
 	}
 	return stepPath;
+}
+
+bool InAlignment::isContained(phmap::flat_hash_set<std::string> &headers) {
+	
+	size_t pos = 0;
+	std::string path = this->path;
+	while (path.size() != 0) {
+		if(path[pos] == '>' || path[pos] == '<' || pos == path.size()) {
+			if (pos == 0) {
+				pos++;
+				continue;
+			}
+			if (headers.find(path.substr(1, pos - 1)) == headers.end())
+				return false;
+			path.erase(0, pos);
+			pos = 0;
+		}else{
+			++pos;
+		}
+	}
+	return true;
 }
 
 InAlignments::~InAlignments() {
@@ -241,9 +263,22 @@ void InAlignments::sortAlignmentsByNameAscending(){
     sort(inAlignments.begin(), inAlignments.end(), [](InAlignment* one, InAlignment* two){return one->qName < two->qName;});
 }
 
-void InAlignments::outAlignments(){
+void InAlignments::outputAlignments(std::string file){
+	
+	OutputStream outputStream(file);
+	
+	const static phmap::flat_hash_map<std::string,int> string_to_case{
+		{"gaf",1},
+	};
+	
+	if (outputStream.outFile) // since we write to file, let's output the stats
+		this->printStats();
+	
+	std::string ext = outputStream.outFile ? getFileExt(outputStream.file) : file; // variable to handle output path and extension
+	std::unique_ptr<std::ostream> &stream = outputStream.stream;
+	
     for(InAlignment* alignment : inAlignments)
-        std::cout<<alignment->print();
+        *stream<<alignment->print();
 }
 
 void InAlignments::markDuplicates(){
@@ -399,6 +434,21 @@ std::vector<Path> InAlignments::getPaths(phmap::flat_hash_map<std::string, unsig
 	for (InAlignment* alignment : inAlignments)
 		paths.push_back(alignment->GAFpathToPath(headersToIds));
 	return paths;
+}
+
+void InAlignments::filterAlignmentByNodelist(std::vector<std::string> nodelist) {
+	
+	phmap::flat_hash_set<std::string> headers(nodelist.begin(), nodelist.end());
+	
+	std::vector<InAlignment*> filteredAlignments;
+	
+	for(InAlignment* alignment : inAlignments) {
+		if (alignment->isContained(headers))
+			filteredAlignments.push_back(alignment);
+		else
+			delete alignment;
+	}
+	this->inAlignments = filteredAlignments;
 }
 
 #define DPRINTC(C) printf(#C " = %c\n", (C))

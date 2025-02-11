@@ -34,6 +34,8 @@ public:
     void read();
     
     void read(InAlignments& inAlignments);
+	
+	std::vector<std::string> readNodelist();
     
 };
 

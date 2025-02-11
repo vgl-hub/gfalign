@@ -67,6 +67,7 @@ void printHelp() {
     printf("eval\n");
     printf("subgraph\n");
     printf("search\n");
+	printf("filter\n");
     exit(0);
 }
 
@@ -102,7 +103,8 @@ int main(int argc, char **argv) {
         {"align",0},
         {"eval",1},
         {"subgraph",2},
-        {"search",3}
+        {"search",3},
+		{"filter",4}
     };
     
     auto got = tools.find(argv[1]);
@@ -233,11 +235,12 @@ int main(int argc, char **argv) {
                     case 'h': // help
                         printf("gfalign align [options]\n");
                         printf("\nOptions:\n");
-                        printf("-f --input-sequence sequence input file (gfa1/2).\n");
+                        printf("-f --input-sequence sequence input file (GFA1/2).\n");
                         printf("-g --input-alignment alignment input file (currently supports: GAF).\n");
                         printf("-o --out-format ouput to file or stdout (currently supports: GAF).\n");
                         printf("-p --preset alignment presets (currently supports: hifi|CLR).\n");
                         printf("-v --version software version.\n");
+						printf("--graph-statistics output graph statistics (default: false).\n");
                         printf("--cmd print $0 to stdout.\n");
                         exit(0);
                 }
@@ -318,10 +321,11 @@ int main(int argc, char **argv) {
                     case 'h': // help
                         printf("gfalign eval [options]\n");
                         printf("\nOptions:\n");
-                        printf("-f --input-sequence sequence input file (gfa1/2).\n");
+                        printf("-f --input-sequence sequence input file (GFA1/2).\n");
                         printf("-g --input-alignment alignment input file (currently supports: GAF).\n");
                         printf("-o --out-format ouput to file or stdout (currently supports: GFA, GAF).\n");
-                        printf("--sort-alignment output sorted alignment.\n");
+						printf("--graph-statistics output graph statistics (default: false).\n");
+                        printf("--sort-alignment output alignment sorted by query name.\n");
                         printf("--output-terminal-alignments output terminal alignments.\n");
                         exit(0);
                 }
@@ -381,7 +385,7 @@ int main(int argc, char **argv) {
                     case 'h': // help
                         printf("gfalign subgraph [options]");
                         printf("\nOptions:\n");
-                        printf("-f --input-sequence sequence input file (gfa1/2).\n");
+                        printf("-f --input-sequence sequence input file (GFA1/2).\n");
                         printf("-n --node-file list of nodes to retain in the subgraph.\n");
                         printf("-o --out-format ouput to file or stdout (currently supports: GFA).\n");
                         exit(0);
@@ -475,16 +479,88 @@ int main(int argc, char **argv) {
                     case 'h': // help
                         printf("gfalign search [options]");
                         printf("\nOptions:\n");
-                        printf("-f --input-sequence <filename> sequence input file (gfa1/2).\n");
+						printf("-d --destination <string> destination node.\n");
+                        printf("-f --input-sequence <filename> sequence input file (GFA1/2).\n");
+						printf("-g --input-alignment alignment input file (currently supports: GAF).\n");
+						printf("-m --max-steps <int> limit graph exploration.\n");
                         printf("-n --node-file <filename> list of nodes available to the search.\n");
                         printf("-s --source <string> source node.\n");
-                        printf("-d --destination <string> destination node.\n");
-                        printf("-m --max-steps <int> limit graph exploration.\n");
+						printf("--graph-statistics output graph statistics (default: false).\n");
                         exit(0);
                 }
             }
             break;
         }
+		case 4: { // alignment filtering
+			static struct option long_options[] = { // struct mapping long options
+				{"input-alignment", required_argument, 0, 'g'},
+				{"node-file", required_argument, 0, 'n'},
+				{"out-format", required_argument, 0, 'o'},
+				{"threads", required_argument, 0, 'j'},
+				{"cmd", no_argument, &userInput.cmd_flag, 1},
+				{"verbose", no_argument, &verbose_flag, 1},
+				{"version", no_argument, 0, 'v'},
+				{"help", no_argument, 0, 'h'},
+				{0, 0, 0, 0}
+			};
+			while (arguments) { // loop through argv
+				
+				int option_index = 1;
+				c = getopt_long(argc, argv, "-:g:j:n:o:vh",
+								long_options, &option_index);
+				
+				if (optind < argc && !isPipe) // if pipe wasn't assigned already
+					isPipe = isDash(argv[optind]) ? true : false; // check if the argument to the option is a '-' and set it as pipe input
+				
+				if (optarg != nullptr && !isPipe) // case where pipe input is given as positional argument (input sequence file)
+					isPipe = isDash(optarg) ? true : false;
+				
+				if (c == -1) // exit the loop if run out of options
+					break;
+				
+				switch (c) {
+					case ':': // handle options without arguments
+						break;
+					default: // handle positional arguments
+					case 0: // case for long options without short options
+						
+						//                if (strcmp(long_options[option_index].name,"line-length") == 0)
+						//                  splitLength = atoi(optarg);
+						break;
+					case 'g': // input alignment
+						if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
+							userInput.pipeType = 'g'; // pipe input is a sequence
+						}else{ // input is a regular file
+							ifFileExists(optarg);
+							userInput.inAlign = optarg;
+							userInput.alignStats_flag = true;
+						}
+						break;
+					case 'j': // max threads
+						maxThreads = atoi(optarg);
+						break;
+					case 'n': // node list
+						ifFileExists(optarg);
+						userInput.nodeFile = optarg;
+						break;
+					case 'o': // handle output (file or stdout)
+						userInput.outFile = optarg;
+						break;
+					case 'v': // software version
+						printf("gfalign v%s\n", version.c_str());
+						printf("Giulio Formenti giulio.formenti@gmail.com\n");
+						exit(0);
+					case 'h': // help
+						printf("gfalign search [options]");
+						printf("\nOptions:\n");
+						printf("-g --input-alignment alignment input file (currently supports: GAF).\n");
+						printf("-n --node-file <filename> list of nodes available to the search.\n");
+						printf("-o --out-format ouput to file or stdout (currently supports: GAF).\n");
+						exit(0);
+				}
+			}
+			break;
+		}
     }
     if (userInput.cmd_flag) { // print command line
         for (unsigned short int arg_counter = 0; arg_counter < argc; arg_counter++) {

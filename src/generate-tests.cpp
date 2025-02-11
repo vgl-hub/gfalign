@@ -60,9 +60,10 @@ int main(void) {
             }
         }
     }
+	
     // test search
     file_args = {
-        {{"-f testFiles/random3.gfa"}, {"-n testFiles/random3.nodelist.tsv -s 1 -d 4"}}
+        {{"-f testFiles/random3.gfa"}, {"-n testFiles/random3.search_nodelist.tsv -s 1 -d 4"}}
     //  {{set of test inputs}, {list of command line args to run with}}
     };
     for(const auto &pair : file_args) {
@@ -72,5 +73,18 @@ int main(void) {
             }
         }
     }
+	
+	// test alignment filtering
+	file_args = {
+		{{"-g testFiles/random3.gaf"}, {"-n testFiles/random3.filter_nodelist.ls -o test.gaf"}}
+	//  {{set of test inputs}, {list of command line args to run with}}
+	};
+	for(const auto &pair : file_args) {
+		for(const std::string &input : pair.first) {
+			for(const std::string &args : pair.second) {
+				genTest("gfalign", "filter", input, args);
+			}
+		}
+	}
     std::exit(EXIT_SUCCESS);
 }
