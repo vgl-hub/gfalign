@@ -60,7 +60,7 @@ void evalGFA(InSequences& InSequences, InAlignments& InAlignments) {
     }
 }
 
-bool evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> alignmentPaths, phmap::flat_hash_map<uint32_t,uint32_t> &dist, NodeTable &nodeTable, const uint32_t pId, const uint32_t destinationId) {
+bool evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> alignmentPaths, phmap::flat_hash_map<uint32_t,uint32_t> &dist, NodeTable &nodeTable, const uint32_t pId, const int32_t destinationId) {
     
     Step lastStep = path.path.back();
     InSegment &segment = inSequences.findSegmentBySUId(lastStep.id);
@@ -82,9 +82,10 @@ bool evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> 
     std::cout<<" "<<uniques.size()<<std::endl;
 	
 	int dp[MAX_N][MAX_N];
-	for (Path alignmentPath : alignmentPaths)
-		alignPaths(1, -1, -1, path, alignmentPath, dp);
-    
+	for (Path alignmentPath : alignmentPaths) {
+		PairwisePathAlignment alignment = alignPaths(1, -1, -1, path, alignmentPath, dp);
+		alignment.print(*inSequences.getHash2());
+	}
     bool hamiltonian = true;
     for (auto& it: nodeTable.records) {
         auto found = pathNodes.find(it.second.uId);
@@ -126,7 +127,7 @@ void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string 
     while (Q.size() > 0 && steps < maxSteps) { // the main loop
         std::pair<const uint32_t,Path> u = *Q.extractMin(); // remove and return best segment
         bool pathFound = false;
-        pathFound = evaluatePath(u.second, inSequences, alignmentPaths, dist, nodeTable, pId, nodeTable[destination].uId);
+		pathFound = evaluatePath(u.second, inSequences, alignmentPaths, dist, nodeTable, pId, nodeTable[destination].uId);
         if (pathFound)
             continue;
         

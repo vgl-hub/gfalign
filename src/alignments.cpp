@@ -430,55 +430,44 @@ inline int needleman_wunsch(uint32_t n, uint32_t m, int dp[MAX_N][MAX_N], int8_t
 	return dp[n][m];
 }
 
-inline pair<std::string, std::string> get_optimal_alignment(uint32_t n, uint32_t m, int dp[MAX_N][MAX_N], int8_t match_score, int8_t mismatch_score, Path &A, Path &B)
+inline PairwisePathAlignment get_optimal_alignment(uint32_t n, uint32_t m, int dp[MAX_N][MAX_N], int8_t match_score, int8_t mismatch_score, Path &A, Path &B)
 {
-	std::string SA, SB;
+	Path SA, SB;
 	int ii = n, jj = m;
 	while (ii != 0 || jj != 0) {
-		if (ii == 0)
-		{
-			SA += "-,";
-			SB += B[jj-1].orientation + std::to_string(B[jj-1].id) + ",";
+		if (ii == 0){
+			SA.push_back(-1, '0');
+			SB.push_back(B[jj-1].id, B[jj-1].orientation);
 			jj--;
-		}
-		else if (jj == 0)
-		{
-			SA += A[ii-1].orientation + std::to_string(A[ii-1].id) + ",";
-			SB += "-,";
+		}else if (jj == 0){
+			SA.push_back(A[ii-1].id, A[ii-1].orientation);
+			SB.push_back(-1, '0');
 			ii--;
-		}
-		else
-		{
+		}else{
 			int S = (A[ii-1] == B[jj-1]) ? match_score : mismatch_score;
-			if (dp[ii][jj] == dp[ii-1][jj-1] + S)
-			{
-				SA += A[ii-1].orientation + std::to_string(A[ii-1].id) + ",";
-				SB += B[jj-1].orientation + std::to_string(B[jj-1].id) + ",";
+			if (dp[ii][jj] == dp[ii-1][jj-1] + S){
+				SA.push_back(A[ii-1].id, A[ii-1].orientation);
+				SB.push_back(B[jj-1].id, B[jj-1].orientation);
 				ii--; jj--;
-			}
-			else if (dp[ii-1][jj] > dp[ii][jj-1])
-			{
-				SA += A[ii-1].orientation + std::to_string(A[ii-1].id) + ",";
-				SB += "-,";
+			}else if(dp[ii-1][jj] > dp[ii][jj-1]){
+				SA.push_back(A[ii-1].id, A[ii-1].orientation);
+				SB.push_back(-1, '0');
 				ii--;
-			}
-			else
-			{
-				SA += "-,";
-				SB += B[jj-1].orientation + std::to_string(B[jj-1].id) + ",";
+			}else{
+				SA.push_back(-1, '0');
+				SB.push_back(B[jj-1].id, B[jj-1].orientation);
 				jj--;
 			}
 		}
 	}
-	std::reverse(SA.begin(), SA.end());
-	std::reverse(SB.begin(), SB.end());
-	return make_pair(SA, SB);
+	SA.reverse();
+	SB.reverse();
+	return PairwisePathAlignment(SA, SB);
 }
 
-bool alignPaths(int8_t match_score, int8_t mismatch_score, int8_t gap_score, Path A, Path B, int dp[MAX_N][MAX_N]) {
+PairwisePathAlignment alignPaths(int8_t match_score, int8_t mismatch_score, int8_t gap_score, Path A, Path B, int dp[MAX_N][MAX_N]) {
 	uint32_t n = A.size(), m = B.size();
 	needleman_wunsch(n, m, dp, match_score, mismatch_score, gap_score, A, B);
-	pair<std::string, std::string> alignment = get_optimal_alignment(n, m, dp, match_score, mismatch_score, A, B);
-	printf("%s\n%s\n", alignment.first.c_str(), alignment.second.c_str());
-	return true;
+	PairwisePathAlignment alignment = get_optimal_alignment(n, m, dp, match_score, mismatch_score, A, B);
+	return alignment;
 }

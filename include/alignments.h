@@ -9,7 +9,7 @@ struct Alignments { // collection of sequences
 };
 
 struct Step { // step in an alignment path
-	uint32_t id;
+	int32_t id;
 	char orientation;
 	
 	inline bool operator==(const Step& step) const {
@@ -32,7 +32,7 @@ struct Path { // graph alignment path
 		return path.size();
 	}
 	
-	void push_back(uint32_t id, char orientation) {
+	void push_back(int32_t id, char orientation) {
 		path.push_back(Step{id, orientation});
 	}
 	
@@ -43,6 +43,13 @@ struct Path { // graph alignment path
 		return path[index];
 	}
 	
+	const Step& at(size_t index) const {
+		if (index >= size()) {
+			throw std::out_of_range("Index out of bounds");
+		}
+		return path.at(index);
+	}
+	
 	std::unordered_set<uint32_t> pathToSet() const {
 		std::unordered_set<uint32_t> uIdSet;
 		for (Step step : path)
@@ -50,11 +57,40 @@ struct Path { // graph alignment path
 		return uIdSet;
 	}
 	
+	void reverse() {
+		std::reverse(path.begin(), path.end());
+	}
+	
 	void print() const {
 		for (uint32_t i = 0; i<path.size(); ++i) {
 			std::cout<<path.at(i).id<<path.at(i).orientation;
 			if (i+1<path.size())
 				std::cout<<',';
+		}
+		std::cout<<std::endl;
+	}
+};
+
+struct PairwisePathAlignment{
+	
+	Path A, B;
+	
+	PairwisePathAlignment(Path A, Path B) : A(A), B(B){}
+	
+	void print(phmap::flat_hash_map<unsigned int, std::string> &idsToHeaders) const {
+		
+		for (uint32_t i = 0; i<A.size(); ++i) {
+			if (A.at(i).id == -1)
+				std::cout<<std::string(idsToHeaders[B.at(i).id].size()+1, '-')<<",";
+			else
+				std::cout<<idsToHeaders[A.at(i).id]<<A.at(i).orientation<<",";
+		}
+		std::cout<<std::endl;
+		for (uint32_t i = 0; i<B.size(); ++i) {
+			if (B.at(i).id == -1)
+				std::cout<<std::string(idsToHeaders[A.at(i).id].size()+1, '-')<<",";
+			else
+				std::cout<<idsToHeaders[B.at(i).id]<<B.at(i).orientation<<",";
 		}
 		std::cout<<std::endl;
 	}
@@ -176,8 +212,7 @@ public:
 std::vector<InEdge> GAFpathToEdges(std::string path, phmap::flat_hash_map<std::string, unsigned int>* headersToIds);
 
 #define MAX_N 1001
-bool alignPaths(int8_t match_score, int8_t mismatch_score, int8_t gap_score, Path A, Path B, int dp[MAX_N][MAX_N]);
-
+PairwisePathAlignment alignPaths(int8_t match_score, int8_t mismatch_score, int8_t gap_score, Path A, Path B, int dp[MAX_N][MAX_N]);
 
 #endif /* ALIGNMENTS_H */
 
