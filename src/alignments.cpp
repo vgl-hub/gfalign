@@ -49,6 +49,26 @@ InAlignment::InAlignment(std::vector<std::string> cols, std::vector<Tag> inTags,
     this->pos = pos;
 }
 
+uint32_t InAlignment::pathNodesCount() {
+	uint32_t nodeCount = 0;
+	size_t pos = 0;
+	std::string path = this->path;
+	while (path.size() != 0) {
+		if(path[pos] == '>' || path[pos] == '<' || pos == path.size()) {
+			if (pos == 0) {
+				pos++;
+				continue;
+			}
+			++nodeCount;
+			path.erase(0, pos);
+			pos = 0;
+		}else{
+			++pos;
+		}
+	}
+	return nodeCount;
+}
+
 std::string InAlignment::print() {
     
     std::string alignment =
@@ -76,7 +96,7 @@ Path InAlignment::GAFpathToPath(phmap::flat_hash_map<std::string, unsigned int> 
 
 	Path stepPath;
 	size_t pos = 0;
-
+	std::string path = this->path;
 	while (path.size() != 0) {
 		if(path[pos] == '>' || path[pos] == '<' || pos == path.size()) {
 			if (pos == 0) {
@@ -436,14 +456,14 @@ std::vector<Path> InAlignments::getPaths(phmap::flat_hash_map<std::string, unsig
 	return paths;
 }
 
-void InAlignments::filterAlignmentByNodelist(std::vector<std::string> nodelist) {
+void InAlignments::filterAlignmentByNodelist(std::vector<std::string> nodelist, uint32_t minNodes) {
 	
 	phmap::flat_hash_set<std::string> headers(nodelist.begin(), nodelist.end());
 	
 	std::vector<InAlignment*> filteredAlignments;
 	
 	for(InAlignment* alignment : inAlignments) {
-		if (alignment->isContained(headers))
+		if (alignment->isContained(headers) && alignment->pathNodesCount() >= minNodes)
 			filteredAlignments.push_back(alignment);
 		else
 			delete alignment;

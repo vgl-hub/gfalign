@@ -496,6 +496,9 @@ int main(int argc, char **argv) {
 				{"input-alignment", required_argument, 0, 'g'},
 				{"node-file", required_argument, 0, 'n'},
 				{"out-format", required_argument, 0, 'o'},
+				
+				{"min-nodes", required_argument, 0, 1},
+				
 				{"threads", required_argument, 0, 'j'},
 				{"cmd", no_argument, &userInput.cmd_flag, 1},
 				{"verbose", no_argument, &verbose_flag, 1},
@@ -523,9 +526,8 @@ int main(int argc, char **argv) {
 						break;
 					default: // handle positional arguments
 					case 0: // case for long options without short options
-						
-						//                if (strcmp(long_options[option_index].name,"line-length") == 0)
-						//                  splitLength = atoi(optarg);
+						if (strcmp(long_options[option_index].name,"min-nodes") == 0)
+							userInput.minNodes = atoi(optarg);
 						break;
 					case 'g': // input alignment
 						if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
@@ -556,6 +558,7 @@ int main(int argc, char **argv) {
 						printf("-g --input-alignment alignment input file (currently supports: GAF).\n");
 						printf("-n --node-file <filename> list of nodes available to the search.\n");
 						printf("-o --out-format ouput to file or stdout (currently supports: GAF).\n");
+						printf("--min-nodes <int> retain alignments mapping to at least int nodes.\n");
 						exit(0);
 				}
 			}

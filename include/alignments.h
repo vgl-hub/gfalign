@@ -122,6 +122,8 @@ public:
 	
 	Path GAFpathToPath(phmap::flat_hash_map<std::string, unsigned int> &headersToIds);
 	
+	uint32_t pathNodesCount();
+	
 	bool isContained(phmap::flat_hash_set<std::string> &headers);
     
     friend class InAlignments;
@@ -209,7 +211,7 @@ public:
 	
 	std::vector<Path> getPaths(phmap::flat_hash_map<std::string, unsigned int> &headersToIds);
 	
-	void filterAlignmentByNodelist(std::vector<std::string> nodelist);
+	void filterAlignmentByNodelist(std::vector<std::string> nodelist, uint32_t minNodes);
     
 };
 

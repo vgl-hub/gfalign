@@ -112,7 +112,7 @@ void Input::read() {
         }
 		case 4: { // alignment filtering
 			std::vector<std::string> nodelist = readNodelist();
-			this->inAlignments.filterAlignmentByNodelist(nodelist);
+			this->inAlignments.filterAlignmentByNodelist(nodelist, userInput.minNodes);
 			if (userInput.outFile != "")
 				this->inAlignments.outputAlignments(userInput.outFile);
 			break;
