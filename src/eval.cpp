@@ -166,9 +166,9 @@ void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string 
                 newPath.push_back(v.id,v.orientation1);
                 auto got2 = newPath.nodeTable.records.find(nextSegment.getSeqHeader());
                 --got2->second.count;
+				dist[pId] = alt;
                 std::pair<const uint32_t,Path> *u = new std::pair<const uint32_t,Path>(pId++, newPath);
                 Q.insert(u, alt);
-                dist[pId] = alt;
             }
         }
         ++steps;
