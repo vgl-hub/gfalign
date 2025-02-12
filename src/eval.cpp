@@ -68,24 +68,38 @@ bool evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> 
     if (lastStep.id != destinationId)
         return false;
     
+	if (path.size() < 26)
+		return true;
+	
     lg.verbose("Destination found.");
     std::unordered_set<uint32_t> pathNodes = path.pathToSet();
     std::vector<std::string> uniques;
     for (auto n : path.path) {
         InSegment &segment = inSequences.findSegmentBySUId(n.id);
-        std::cout<<segment.getSeqHeader()<<n.orientation<<",";
         uniques.push_back(segment.getSeqHeader());
     }
     std::sort(uniques.begin(), uniques.end());
     auto last = std::unique(uniques.begin(), uniques.end());
     uniques.erase(last, uniques.end());
-    std::cout<<" "<<uniques.size()<<std::endl;
+	
+	if (uniques.size() < 26)
+		return true;
 	
 	int dp[MAX_N][MAX_N];
+	uint32_t goodAlignments = 0;
 	for (Path alignmentPath : alignmentPaths) {
 		PairwisePathAlignment alignmentFw = alignPaths(1, -1, -1, path, alignmentPath, dp);
 		PairwisePathAlignment alignmentRc = alignPaths(1, -1, -1, path, alignmentPath.reverseComplement(), dp);
-		(alignmentFw.alignmentScore > alignmentRc.alignmentScore) ? alignmentFw.print(*inSequences.getHash2()) : alignmentRc.print(*inSequences.getHash2());
+		int32_t bestAlignmentScore = (alignmentFw.alignmentScore > alignmentRc.alignmentScore) ? alignmentFw.alignmentScore : alignmentRc.alignmentScore;
+		if (bestAlignmentScore > 3) {
+			++goodAlignments;
+			(alignmentFw.alignmentScore > alignmentRc.alignmentScore) ? alignmentFw.print(*inSequences.getHash2()) : alignmentRc.print(*inSequences.getHash2());
+			std::cout<<((alignmentFw.alignmentScore > alignmentRc.alignmentScore) ? alignmentFw.alignmentScore : alignmentRc.alignmentScore)<<std::endl;
+		}
+	}
+	if (goodAlignments > 5) {
+		path.print(inSequences);
+		std::cout<<"\t"<<+goodAlignments<<"\t"<<uniques.size()<<std::endl;
 	}
     bool hamiltonian = true;
     for (auto& it: nodeTable.records) {
@@ -126,30 +140,26 @@ void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string 
     Q.insert(u, 0); // append source node
     lg.verbose("Starting search");
     while (Q.size() > 0 && steps < maxSteps) { // the main loop
-        std::pair<const uint32_t,Path> u = *Q.extractMin(); // remove and return best segment
-        bool pathFound = false;
-		pathFound = evaluatePath(u.second, inSequences, alignmentPaths, dist, nodeTable, pId, nodeTable[destination].uId);
+        std::pair<const uint32_t,Path> *u = Q.extractMin(); // remove and return best path to extend
+		bool pathFound = evaluatePath(u->second, inSequences, alignmentPaths, dist, nodeTable, u->first, nodeTable[destination].uId);
         if (pathFound)
             continue;
         
-        uint32_t alt = dist[u.first] + 1;
-        for(auto v : adjEdgeList.at(u.second.path.back().id)) {
+        uint32_t alt = dist[u->first] + 1;
+        for(auto v : adjEdgeList.at(u->second.path.back().id)) {
             
-//            if (v.id == nodeTable[destination].uId)
-//                alt += 2000;
-            
-            if (u.second.path.back().orientation != '0' && u.second.path.back().orientation != v.orientation0)
+            if (u->second.path.back().orientation != '0' && u->second.path.back().orientation != v.orientation0)
                 continue;
             
-            if (u.second.path.back().orientation == '0') // set orientation of the start node for this path
-                u.second.path.back().orientation = v.orientation0;
+            if (u->second.path.back().orientation == '0') // set orientation of the start node for this path
+                u->second.path.back().orientation = v.orientation0;
             
             InSegment &nextSegment = inSequences.findSegmentBySUId(v.id);
             lg.verbose("Inspecting segment: " + nextSegment.getSeqHeader() + v.orientation1);
-            auto got = u.second.nodeTable.records.find(nextSegment.getSeqHeader());
-            lg.verbose("We can visit this node n time: " + std::to_string(got->second.count));
-            if (got != u.second.nodeTable.records.end() && got->second.count > 0) {
-                Path newPath(u.second);
+            auto got = u->second.nodeTable.records.find(nextSegment.getSeqHeader());
+            lg.verbose("We can visit this node n times: " + std::to_string(got->second.count));
+            if (got != u->second.nodeTable.records.end() && got->second.count > 0) {
+                Path newPath(u->second);
                 newPath.push_back(v.id,v.orientation1);
                 auto got2 = newPath.nodeTable.records.find(nextSegment.getSeqHeader());
                 --got2->second.count;
@@ -159,6 +169,7 @@ void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string 
             }
         }
         ++steps;
+		delete u;
     }
     if (steps >= maxSteps)
         std::cout<<"Reached maximum number of steps ("<<+steps<<")"<<std::endl;

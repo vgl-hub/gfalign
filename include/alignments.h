@@ -69,13 +69,12 @@ struct Path { // graph alignment path
 		return rc;
 	}
 	
-	void print() const {
-		for (uint32_t i = 0; i<path.size(); ++i) {
-			std::cout<<path.at(i).id<<path.at(i).orientation;
-			if (i+1<path.size())
+	void print(InSequences &inSequences) const {
+		for (uint32_t i = 0; i<this->path.size(); ++i) {
+			std::cout<<inSequences.findSegmentBySUId(this->path.at(i).id).getSeqHeader()<<this->path.at(i).orientation;
+			if (i+1<this->path.size())
 				std::cout<<',';
 		}
-		std::cout<<std::endl;
 	}
 };
 
