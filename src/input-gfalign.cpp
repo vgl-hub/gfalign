@@ -107,7 +107,7 @@ void Input::read() {
         break;
         }
         case 3: { // path search
-			dijkstra(this->inSequences, this->inAlignments, userInput.nodeFile, userInput.source, userInput.destination, userInput.dijkstraSteps);
+			dijkstra(this->inSequences, this->inAlignments, userInput.nodeFile, userInput.source, userInput.destination, userInput.dijkstraSteps, userInput.minNodes);
             break;
         }
 		case 4: { // alignment filtering

@@ -76,7 +76,7 @@ int main(void) {
 	
 	// test alignment filtering
 	file_args = {
-		{{"-g testFiles/random3.gaf"}, {"-n testFiles/random3.filter_nodelist.ls -o test.gaf"}}
+		{{"-g testFiles/random3.gaf"}, {"-n testFiles/random3.filter_nodelist.ls -o gaf"}}
 	//  {{set of test inputs}, {list of command line args to run with}}
 	};
 	for(const auto &pair : file_args) {

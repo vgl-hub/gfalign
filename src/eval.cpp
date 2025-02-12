@@ -60,15 +60,15 @@ void evalGFA(InSequences& InSequences, InAlignments& InAlignments) {
     }
 }
 
-bool evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> alignmentPaths, phmap::flat_hash_map<uint32_t,uint32_t> &dist, NodeTable &nodeTable, const uint32_t pId, const int32_t destinationId) {
+bool evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> alignmentPaths, phmap::flat_hash_map<uint32_t,uint32_t> &dist, NodeTable &nodeTable, const uint32_t pId, const int32_t destinationId, const int32_t minNodes) {
     
     Step lastStep = path.path.back();
     InSegment &segment = inSequences.findSegmentBySUId(lastStep.id);
     lg.verbose("We are at segment: " + segment.getSeqHeader() + lastStep.orientation);
-    if (lastStep.id != destinationId)
+    if(lastStep.id != destinationId)
         return false;
     
-	if (path.size() < 25)
+	if((int32_t)path.size() < minNodes)
 		return true;
 	
     lg.verbose("Destination found.");
@@ -82,7 +82,7 @@ bool evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> 
     auto last = std::unique(uniques.begin(), uniques.end());
     uniques.erase(last, uniques.end());
 	
-	if (uniques.size() < 25)
+	if ((int32_t)uniques.size() < minNodes)
 		return true;
 	
 	int dp[MAX_N][MAX_N];
@@ -101,7 +101,7 @@ bool evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> 
 	}
 //	if (goodAlignments > 300) {
 		path.print(inSequences);
-		std::cout<<"\t"<<+goodAlignments<<"\t"<<+badAlignments<<"\t"<<uniques.size()<<std::endl;
+		std::cout<<"\t"<<+goodAlignments<<"\t"<<+badAlignments<<"\t"<<path.size()<<"\t"<<uniques.size()<<std::endl;
 //	}
     bool hamiltonian = true;
     for (auto& it: nodeTable.records) {
@@ -118,7 +118,7 @@ bool evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> 
     return true;
 }
 
-void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string nodeFile, std::string source, std::string destination, uint32_t maxSteps) {
+void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string nodeFile, std::string source, std::string destination, uint32_t maxSteps, int32_t minNodes) {
     
     uint32_t steps = 0, pId = 0; // true if we reached a node in the original graph
     std::vector<uint64_t> destinations;
@@ -143,10 +143,11 @@ void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string 
     lg.verbose("Starting search");
     while (Q.size() > 0 && steps < maxSteps) { // the main loop
         std::pair<const uint32_t,Path> *u = Q.extractMin(); // remove and return best path to extend
-		bool pathFound = evaluatePath(u->second, inSequences, alignmentPaths, dist, nodeTable, u->first, nodeTable[destination].uId);
-        if (pathFound)
-            continue;
-        
+		bool pathFound = evaluatePath(u->second, inSequences, alignmentPaths, dist, nodeTable, u->first, nodeTable[destination].uId, minNodes);
+		if (pathFound) {
+			delete u;
+			continue;
+		}
         uint32_t alt = dist[u->first] + 1;
         for(auto v : adjEdgeList.at(u->second.path.back().id)) {
             

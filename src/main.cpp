@@ -404,6 +404,7 @@ int main(int argc, char **argv) {
                 {"source", required_argument, 0, 's'},
                 
                 {"graph-statistics", no_argument, &userInput.stats_flag, 1},
+				{"min-nodes", required_argument, 0, 1},
                 
                 {"threads", required_argument, 0, 'j'},
                 {"cmd", no_argument, &userInput.cmd_flag, 1},
@@ -432,9 +433,8 @@ int main(int argc, char **argv) {
                         break;
                     default: // handle positional arguments
                     case 0: // case for long options without short options
-                        
-                        //                if (strcmp(long_options[option_index].name,"line-length") == 0)
-                        //                  splitLength = atoi(optarg);
+						if (strcmp(long_options[option_index].name,"min-nodes") == 0)
+							userInput.minNodes = atoi(optarg);
                         break;
                     case 'd':
                         userInput.destination = optarg;
@@ -486,6 +486,7 @@ int main(int argc, char **argv) {
                         printf("-n --node-file <filename> list of nodes available to the search.\n");
                         printf("-s --source <string> source node.\n");
 						printf("--graph-statistics output graph statistics (default: false).\n");
+						printf("--min-nodes <int> do not report paths with less than int nodes (default: 0).\n");
                         exit(0);
                 }
             }
