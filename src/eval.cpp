@@ -68,7 +68,7 @@ bool evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> 
     if (lastStep.id != destinationId)
         return false;
     
-	if (path.size() < 26)
+	if (path.size() < 25)
 		return true;
 	
     lg.verbose("Destination found.");
@@ -82,25 +82,27 @@ bool evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> 
     auto last = std::unique(uniques.begin(), uniques.end());
     uniques.erase(last, uniques.end());
 	
-	if (uniques.size() < 26)
+	if (uniques.size() < 25)
 		return true;
 	
 	int dp[MAX_N][MAX_N];
-	uint32_t goodAlignments = 0;
+	uint32_t goodAlignments = 0, badAlignments = 0;
 	for (Path alignmentPath : alignmentPaths) {
-		PairwisePathAlignment alignmentFw = alignPaths(1, -1, -1, path, alignmentPath, dp);
-		PairwisePathAlignment alignmentRc = alignPaths(1, -1, -1, path, alignmentPath.reverseComplement(), dp);
+		PairwisePathAlignment alignmentFw = alignPaths(0, -1, -1, path, alignmentPath, dp);
+		PairwisePathAlignment alignmentRc = alignPaths(0, -1, -1, path, alignmentPath.reverseComplement(), dp);
 		int32_t bestAlignmentScore = (alignmentFw.alignmentScore > alignmentRc.alignmentScore) ? alignmentFw.alignmentScore : alignmentRc.alignmentScore;
-		if (bestAlignmentScore > 3) {
+		if (bestAlignmentScore < 0) {
+			++badAlignments;
+		}else{
 			++goodAlignments;
-			(alignmentFw.alignmentScore > alignmentRc.alignmentScore) ? alignmentFw.print(*inSequences.getHash2()) : alignmentRc.print(*inSequences.getHash2());
-			std::cout<<((alignmentFw.alignmentScore > alignmentRc.alignmentScore) ? alignmentFw.alignmentScore : alignmentRc.alignmentScore)<<std::endl;
 		}
+//		(alignmentFw.alignmentScore > alignmentRc.alignmentScore) ? alignmentFw.print(*inSequences.getHash2()) : alignmentRc.print(*inSequences.getHash2());
+//		std::cout<<bestAlignmentScore<<std::endl;
 	}
-	if (goodAlignments > 5) {
+//	if (goodAlignments > 300) {
 		path.print(inSequences);
-		std::cout<<"\t"<<+goodAlignments<<"\t"<<uniques.size()<<std::endl;
-	}
+		std::cout<<"\t"<<+goodAlignments<<"\t"<<+badAlignments<<"\t"<<uniques.size()<<std::endl;
+//	}
     bool hamiltonian = true;
     for (auto& it: nodeTable.records) {
         auto found = pathNodes.find(it.second.uId);

@@ -503,7 +503,7 @@ inline int needleman_wunsch(uint32_t n, uint32_t m, int dp[MAX_N][MAX_N], int8_t
 inline PairwisePathAlignment get_optimal_alignment(uint32_t n, uint32_t m, int dp[MAX_N][MAX_N], int8_t match_score, int8_t mismatch_score, Path &A, Path &B)
 {
 	Path SA, SB;
-	int32_t alignmentScore = 0;
+	int32_t alignmentScore = 0, SBlen = 0;
 	int ii = n, jj = m;
 	while (ii != 0 || jj != 0) {
 		if (ii == 0){
@@ -521,11 +521,12 @@ inline PairwisePathAlignment get_optimal_alignment(uint32_t n, uint32_t m, int d
 				SB.push_back(B[jj-1].id, B[jj-1].orientation);
 				ii--; jj--;
 				alignmentScore += S;
+				++SBlen;
 			}else if(dp[ii-1][jj] > dp[ii][jj-1]){
 				SA.push_back(A[ii-1].id, A[ii-1].orientation);
 				SB.push_back(-1, '0');
 				ii--;
-				if (SB.size() > 0)
+				if (SBlen > 0)
 					alignmentScore -= 1;
 			}else{
 				SA.push_back(-1, '0');
