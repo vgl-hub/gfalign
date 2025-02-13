@@ -64,7 +64,7 @@ struct Path { // graph alignment path
 	Path reverseComplement() {
 		Path rc = *this;
 		std::reverse(rc.path.begin(), rc.path.end());
-		for (Step step : rc.path)
+		for (Step &step : rc.path)
 			step.orientation = (step.orientation == '+') ? '-' : '+';
 		return rc;
 	}
