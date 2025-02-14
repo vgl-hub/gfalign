@@ -122,15 +122,17 @@ void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string 
 			if (u->second.path.back().orientation != '0' && u->second.path.back().orientation != v.orientation0)
 				continue;
 			
-			if (u->second.path.back().orientation == '0') // set orientation of the start node for this path
-				u->second.path.back().orientation = v.orientation0;
-			
 			InSegment &nextSegment = inSequences.findSegmentBySUId(v.id);
 			lg.verbose("Inspecting segment: " + nextSegment.getSeqHeader() + v.orientation1);
 			auto got = u->second.nodeTable.records.find(nextSegment.getSeqHeader());
-			lg.verbose("We can visit this node n times: " + std::to_string(got->second.count));
 			if (got != u->second.nodeTable.records.end() && got->second.count > 0) {
+				
+				lg.verbose("We can visit this node n times: " + std::to_string(got->second.count));
 				Path newPath(u->second);
+			
+				if (newPath.path.back().orientation == '0') // set orientation of the start node for this path
+					newPath.path.back().orientation = v.orientation0;
+				
 				newPath.push_back(v.id,v.orientation1);
 				
 				std::vector<std::string> uniques;
