@@ -181,7 +181,7 @@ void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string 
 						}
 					}
 					if (hamiltonian)
-						lg.verbose("Hamiltonian path found.");
+						std::cout<<"Hamiltonian path found."<<std::endl;
 				}
 			}
 		}
