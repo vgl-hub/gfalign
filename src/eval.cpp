@@ -60,22 +60,28 @@ void evalGFA(InSequences& InSequences, InAlignments& InAlignments) {
 	}
 }
 
-int32_t evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> alignmentPaths) {
+struct PathAlignmentStats {
+	uint32_t badAlignments = 0, goodAlignments = 0, unaligned = 0;
+};
+
+PathAlignmentStats evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> alignmentPaths) {
 	
 	Step lastStep = path.path.back();
 	InSegment &segment = inSequences.findSegmentBySUId(lastStep.id);
 	lg.verbose("We are at segment: " + segment.getSeqHeader() + lastStep.orientation);
 	
 	int dp[MAX_N][MAX_N];
-	int32_t goodAlignments = 0, badAlignments = 0;
+	PathAlignmentStats pathAlignmentStats;
 	phmap::flat_hash_set<uint32_t> uIds;
 	for (Step step : path.path)
 		uIds.insert(step.id);
 	for (Path &alignmentPath : alignmentPaths) {
 		bool next = false;
 		for (Step step : alignmentPath.path) { // remove spurious reads
-			if (uIds.find(step.id) == uIds.end())
+			if (uIds.find(step.id) == uIds.end()) {
 				next = true;
+				++pathAlignmentStats.unaligned;
+			}
 		}
 		if (next)
 			continue;
@@ -83,20 +89,21 @@ int32_t evaluatePath(const Path &path, InSequences &inSequences, std::vector<Pat
 		PairwisePathAlignment alignmentRc = alignPaths(0, -1, -1, path, alignmentPath.reverseComplement(), dp);
 		int32_t bestAlignmentScore = (alignmentFw.alignmentScore > alignmentRc.alignmentScore) ? alignmentFw.alignmentScore : alignmentRc.alignmentScore;
 		if (bestAlignmentScore < 0) {
-			++badAlignments;
+			++pathAlignmentStats.badAlignments;
 		}else{
-			++goodAlignments;
+			++pathAlignmentStats.goodAlignments;
 		}
 //		(alignmentFw.alignmentScore > alignmentRc.alignmentScore) ? alignmentFw.print(*inSequences.getHash2()) : alignmentRc.print(*inSequences.getHash2());
 //		std::cout<<bestAlignmentScore<<std::endl;
 	}
-	return badAlignments-goodAlignments;
+	return pathAlignmentStats;
 }
 
-void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string nodeFile, std::string source, std::string destination, uint32_t maxSteps, int32_t minNodes) {
+void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string nodeFile, std::string source, std::string destination, uint32_t maxSteps, uint32_t minNodes) {
 	
 	Path bestPath;
 	int32_t bestPath_alt = std::numeric_limits<int>::max();
+	uint64_t pathCounter = 0;
 	uint32_t bestPath_uniques = 0, steps = 0, pId = 0;
 	std::vector<uint64_t> destinations;
 	FibonacciHeap<std::pair<const uint32_t,Path>*> Q; // node priority queue Q
@@ -144,7 +151,8 @@ void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string 
 				auto last = std::unique(uniques.begin(), uniques.end());
 				uniques.erase(last, uniques.end());
 				
-				int32_t alt = evaluatePath(newPath, inSequences, alignmentPaths) - (int32_t)uniques.size();
+				PathAlignmentStats pathAlignmentStats = evaluatePath(newPath, inSequences, alignmentPaths);
+				int32_t alt = (int32_t)pathAlignmentStats.badAlignments - (int32_t)pathAlignmentStats.goodAlignments - (int32_t)uniques.size();
 				
 				if(v.id != nodeTable[destination].uId) {
 					auto got2 = newPath.nodeTable.records.find(nextSegment.getSeqHeader());
@@ -153,16 +161,16 @@ void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string 
 					Q.insert(u, alt);
 				}else{
 					lg.verbose("Destination found.");
+					++pathCounter;
 					std::unordered_set<uint32_t> pathNodes = newPath.pathToSet();
-					if (bestPath_uniques < uniques.size() || (bestPath_uniques == uniques.size() && bestPath_alt > alt)) {
+					if (bestPath_uniques >= minNodes && (bestPath_uniques < uniques.size() || (bestPath_uniques == uniques.size() && bestPath_alt > alt))) {
 						bestPath = newPath;
 						bestPath_alt = alt;
 						bestPath_uniques = uniques.size();
 						
 						newPath.print(inSequences);
-						std::cout<<"\t"<<+alt<<"\t"<<newPath.size()<<"\t"<<uniques.size()<<std::endl;
+						std::cout<<"\t"<<+pathCounter<<"\t"<<+pathAlignmentStats.badAlignments<<"\t"<<+pathAlignmentStats.goodAlignments<<"\t"<<+alt<<"\t"<<newPath.size()<<"\t"<<uniques.size()<<std::endl;
 					}
-					
 					bool hamiltonian = true;
 					for (auto& it: nodeTable.records) {
 						auto found = pathNodes.find(it.second.uId);
