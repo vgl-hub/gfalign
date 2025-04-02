@@ -44,7 +44,7 @@ int main(void) {
     for(const auto &pair : file_args) {
         for(const std::string &input : pair.first) {
             for(const std::string &args : pair.second) {
-                genTest("gfalign", "eval", input, args);
+                genTest("gfalign", "evalGFA", input, args);
             }
         }
     }

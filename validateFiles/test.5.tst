@@ -1,4 +1,4 @@
-gfalign eval -f testFiles/random2.gfa -g testFiles/random2.gaf --sort-alignment
+gfalign evalGFA -f testFiles/random2.gfa -g testFiles/random2.gaf --sort-alignment
 embedded
 +++Alignment summary+++: 
 # alignments: 9

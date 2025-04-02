@@ -1,4 +1,4 @@
-gfalign eval -f testFiles/random2.gfa -g testFiles/random2.gaf --graph-statistics
+gfalign evalGFA -f testFiles/random2.gfa -g testFiles/random2.gaf --graph-statistics
 embedded
 +++Assembly summary+++: 
 # scaffolds: 2
