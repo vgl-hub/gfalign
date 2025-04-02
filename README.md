@@ -48,6 +48,11 @@ Where `path` is the actual path, `# paths` is the number of paths from source to
 
 Only paths that during the search improve on the number of nodes included in the path and in the good/bad alignments will be outputted.
 
+The alignment to any particular path can the be visualized with:
+```
+gfalign evalPath -f assembly.gfa -n nodelist.tsv -p utig4-1+,utig4-2-,utig4-3+,utig4-4- -g alignment.gaf -m 100000000
+```
+
 Gfalign does only performs a node pseudoalignment based on the gaf alignment. Paths can be futher validated by realigning the reads to the path, e.g.:
 
 ```
