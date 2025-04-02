@@ -170,7 +170,7 @@ void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string 
 					lg.verbose("Destination found.");
 					++pathCounter;
 					std::unordered_set<uint32_t> pathNodes = newPath.pathToSet();
-					if (bestPath_uniques >= minNodes && (bestPath_uniques < uniques.size() || (bestPath_uniques == uniques.size() && bestPath_alt > alt))) {
+					if (uniques.size() >= minNodes && (bestPath_uniques < uniques.size() || (bestPath_uniques == uniques.size() && bestPath_alt > alt))) {
 						bestPath = newPath;
 						bestPath_alt = alt;
 						bestPath_uniques = uniques.size();
