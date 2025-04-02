@@ -22,11 +22,11 @@ First generate an alignment, e.g.:
 
 Then compute statistics:
 
-`gfalign eval -g aln.gaf`
+`gfalign evalGFA -g aln.gaf`
 
 Or decorate the graph with information from the alignment:
 
-`gfalign eval -g aln.gaf -f testFiles/random2.gfa -o newGFA.gfa`
+`gfalign evalGFA -g aln.gaf -f testFiles/random2.gfa -o newGFA.gfa`
 
 To check out all tool and options available use `gfalign -h`.
 

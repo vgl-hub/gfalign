@@ -64,7 +64,8 @@ void printHelp() {
     printf("gfalign [options] [tool] [arguments]\n-h for additional help.\n");
     printf("\nTools:\n");
     printf("align\n");
-    printf("eval\n");
+    printf("evalGFA\n");
+	printf("evalPath\n");
     printf("subgraph\n");
     printf("search\n");
 	printf("filter\n");
@@ -101,10 +102,11 @@ int main(int argc, char **argv) {
         printHelp();
     const static std::unordered_map<std::string,int> tools{
         {"align",0},
-        {"eval",1},
+        {"evalGFA",1},
         {"subgraph",2},
         {"search",3},
-		{"filter",4}
+		{"filter",4},
+		{"evalPath",5}
     };
     
     auto got = tools.find(argv[1]);
@@ -249,7 +251,7 @@ int main(int argc, char **argv) {
             }
             break;
         }
-        case 1: { // graph evaluation
+        case 1: { // GFA evaluation
             static struct option long_options[] = { // struct mapping long options
                 {"input-sequence", required_argument, 0, 'f'},
                 {"input-alignment", required_argument, 0, 'g'},
@@ -319,7 +321,7 @@ int main(int argc, char **argv) {
                         printf("Giulio Formenti giulio.formenti@gmail.com\n");
                         exit(0);
                     case 'h': // help
-                        printf("gfalign eval [options]\n");
+                        printf("gfalign evalGFA [options]\n");
                         printf("\nOptions:\n");
                         printf("-f --input-sequence sequence input file (GFA1/2).\n");
                         printf("-g --input-alignment alignment input file (currently supports: GAF).\n");
@@ -565,7 +567,85 @@ int main(int argc, char **argv) {
 			}
 			break;
 		}
+		case 5: { // path evaluation
+			static struct option long_options[] = { // struct mapping long options
+				{"path", required_argument, 0, 'p'},
+				{"input-sequence", required_argument, 0, 'f'},
+				{"input-alignment", required_argument, 0, 'g'},
+				
+				{"graph-statistics", no_argument, &userInput.stats_flag, 1},
+				
+				{"threads", required_argument, 0, 'j'},
+				{"cmd", no_argument, &userInput.cmd_flag, 1},
+				{"verbose", no_argument, &verbose_flag, 1},
+				{"version", no_argument, 0, 'v'},
+				{"help", no_argument, 0, 'h'},
+				{0, 0, 0, 0}
+			};
+			while (arguments) { // loop through argv
+				
+				int option_index = 1;
+				c = getopt_long(argc, argv, "-:p:f:g:j:vh",
+								long_options, &option_index);
+				
+				if (optind < argc && !isPipe) // if pipe wasn't assigned already
+					isPipe = isDash(argv[optind]) ? true : false; // check if the argument to the option is a '-' and set it as pipe input
+				
+				if (optarg != nullptr && !isPipe) // case where pipe input is given as positional argument (input sequence file)
+					isPipe = isDash(optarg) ? true : false;
+				
+				if (c == -1) // exit the loop if run out of options
+					break;
+				
+				switch (c) {
+					case ':': // handle options without arguments
+						break;
+					default: // handle positional arguments
+					case 0: // case for long options without short options
+						if (strcmp(long_options[option_index].name,"min-nodes") == 0)
+							userInput.minNodes = atoi(optarg);
+						break;
+					case 'p':
+						userInput.path = optarg;
+						break;
+					case 'f': // input sequence
+						if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
+							userInput.pipeType = 'f'; // pipe input is a sequence
+						}else{ // input is a regular file
+							ifFileExists(optarg);
+							userInput.inSequence = optarg;
+						}
+						break;
+					case 'g': // input alignment
+						if (isPipe && userInput.pipeType == 'n') { // check whether input is from pipe and that pipe input was not already set
+							userInput.pipeType = 'g'; // pipe input is a sequence
+						}else{ // input is a regular file
+							ifFileExists(optarg);
+							userInput.inAlign = optarg;
+							userInput.alignStats_flag = true;
+						}
+						break;
+					case 'j': // max threads
+						maxThreads = atoi(optarg);
+						break;
+					case 'v': // software version
+						printf("gfalign v%s\n", version.c_str());
+						printf("Giulio Formenti giulio.formenti@gmail.com\n");
+						exit(0);
+					case 'h': // help
+						printf("gfalign search [options]");
+						printf("\nOptions:\n");
+						printf("-p --path in GFA format.\n");
+						printf("-f --input-sequence <filename> sequence input file (GFA1/2).\n");
+						printf("-g --input-alignment alignment input file (currently supports: GAF).\n");
+						printf("--graph-statistics output graph statistics (default: false).\n");
+						exit(0);
+				}
+			}
+			break;
+		}
     }
+	
     if (userInput.cmd_flag) { // print command line
         for (unsigned short int arg_counter = 0; arg_counter < argc; arg_counter++) {
             printf("%s ", argv[arg_counter]);

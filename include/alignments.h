@@ -1,7 +1,7 @@
 #ifndef ALIGNMENTS_H
 #define ALIGNMENTS_H
 
-struct Alignments { // collection of sequences
+struct Alignments { // collection of alignments
     
     std::vector<std::string*> alignments;
     unsigned int batchN;
@@ -21,10 +21,13 @@ struct Step { // step in an alignment path
 };
 
 struct Path { // graph alignment path
+	std::string qName;
 	std::vector<Step> path;
 	NodeTable nodeTable;
 	
 	Path() {}
+	
+	Path(std::string qName) : qName(qName) {}
 	
 	Path(NodeTable nodeTable) : nodeTable(nodeTable) {}
 	
@@ -85,22 +88,26 @@ struct PairwisePathAlignment{
 	
 	PairwisePathAlignment(Path A, Path B, int32_t alignmentScore) : A(A), B(B), alignmentScore(alignmentScore) {}
 	
-	void print(phmap::flat_hash_map<unsigned int, std::string> &idsToHeaders) const {
+	std::string getAlignment(phmap::flat_hash_map<unsigned int, std::string> &idsToHeaders, bool doNotReturnRef = false) const {
 		
-		for (uint32_t i = 0; i<A.size(); ++i) {
-			if (A.at(i).id == -1)
-				std::cout<<std::string(idsToHeaders[B.at(i).id].size()+1, '-')<<",";
-			else
-				std::cout<<idsToHeaders[A.at(i).id]<<A.at(i).orientation<<",";
+		std::string aln;
+		
+		if (!doNotReturnRef) {
+			for (uint32_t i = 0; i<A.size(); ++i) {
+				if (A.at(i).id == -1)
+					aln += std::string(idsToHeaders[B.at(i).id].size()+1, '-') + ",";
+				else
+					aln += idsToHeaders[A.at(i).id] + A.at(i).orientation + ",";
+			}
+			aln += '\n';
 		}
-		std::cout<<std::endl;
 		for (uint32_t i = 0; i<B.size(); ++i) {
 			if (B.at(i).id == -1)
-				std::cout<<std::string(idsToHeaders[A.at(i).id].size()+1, '-')<<",";
+				aln += std::string(idsToHeaders[A.at(i).id].size()+1, '-') + ",";
 			else
-				std::cout<<idsToHeaders[B.at(i).id]<<B.at(i).orientation<<",";
+				aln += idsToHeaders[B.at(i).id] + B.at(i).orientation + ",";
 		}
-		std::cout<<std::endl;
+		return aln;
 	}
 };
 

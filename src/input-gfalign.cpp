@@ -117,5 +117,9 @@ void Input::read() {
 				this->inAlignments.outputAlignments(userInput.outFile);
 			break;
 		}
+		case 5: { // path evaluation
+			evalPath(this->inSequences, this->inAlignments, userInput.path);
+			break;
+		}
     }
 }

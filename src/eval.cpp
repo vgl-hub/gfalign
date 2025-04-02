@@ -64,17 +64,20 @@ struct PathAlignmentStats {
 	uint32_t badAlignments = 0, goodAlignments = 0, unaligned = 0;
 };
 
-PathAlignmentStats evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> alignmentPaths) {
+PathAlignmentStats evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> alignmentPaths, bool printAlignments = false) {
 	
 	Step lastStep = path.path.back();
 	InSegment &segment = inSequences.findSegmentBySUId(lastStep.id);
 	lg.verbose("We are at segment: " + segment.getSeqHeader() + lastStep.orientation);
-	
-	int dp[MAX_N][MAX_N];
+	if (printAlignments) {
+		path.print(inSequences);
+		std::cout<<std::endl;
+	}
 	PathAlignmentStats pathAlignmentStats;
 	phmap::flat_hash_set<uint32_t> uIds;
 	for (Step step : path.path)
 		uIds.insert(step.id);
+	int dp[MAX_N][MAX_N] = {{0}};
 	for (Path &alignmentPath : alignmentPaths) {
 		bool next = false;
 		for (Step step : alignmentPath.path) { // remove spurious reads
@@ -88,13 +91,17 @@ PathAlignmentStats evaluatePath(const Path &path, InSequences &inSequences, std:
 		PairwisePathAlignment alignmentFw = alignPaths(0, -1, -1, path, alignmentPath, dp);
 		PairwisePathAlignment alignmentRc = alignPaths(0, -1, -1, path, alignmentPath.reverseComplement(), dp);
 		int32_t bestAlignmentScore = (alignmentFw.alignmentScore > alignmentRc.alignmentScore) ? alignmentFw.alignmentScore : alignmentRc.alignmentScore;
-		if (bestAlignmentScore < 0) {
+		if (bestAlignmentScore < 0)
 			++pathAlignmentStats.badAlignments;
-		}else{
+		else
 			++pathAlignmentStats.goodAlignments;
+		
+		if (printAlignments) {
+			std::string aln = (alignmentFw.alignmentScore > alignmentRc.alignmentScore) ? alignmentFw.getAlignment(*inSequences.getHash2(), true) : alignmentRc.getAlignment(*inSequences.getHash2(), true);
+			std::cout<<aln<<'\t'<<alignmentPath.qName<<'\t'<<bestAlignmentScore<<std::endl;
+			//std::cout<<alignmentFw.getAlignment(*inSequences.getHash2())<<std::endl;
+			//std::cout<<alignmentRc.getAlignment(*inSequences.getHash2())<<std::endl;
 		}
-//		(alignmentFw.alignmentScore > alignmentRc.alignmentScore) ? alignmentFw.print(*inSequences.getHash2()) : alignmentRc.print(*inSequences.getHash2());
-//		std::cout<<bestAlignmentScore<<std::endl;
 	}
 	return pathAlignmentStats;
 }
@@ -191,4 +198,53 @@ void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string 
 	if (steps >= maxSteps)
 		std::cout<<"Reached maximum number of steps ("<<+steps<<")"<<std::endl;
 	lg.verbose("Search completed");
+}
+
+
+void evalPath(InSequences &inSequences, InAlignments& inAlignments, std::string pathStr) {
+	Path path;
+	std::vector<std::string> components;
+	char sIdOr;
+	
+	phmap::flat_hash_map<std::string, unsigned int> &headersToIds = *inSequences.getHash1();
+	inSequences.uId.next();
+	std::vector<char> delimiters {';', ','};
+	components = readDelimitedArr(pathStr, delimiters, "", true);
+	
+	for (auto it = std::begin(components); it != std::end(components); ++it) {
+		
+		if(it == std::begin(components) && *it == "") { // handle starting/ending gap
+			fprintf(stderr, "Error: cannot handle starting gap. Terminating.\n");
+			exit(1);
+		}
+		
+		std::string component = *it;
+		if (std::next(it) != std::end(components))
+			component.pop_back(); // remove separator
+		sIdOr = component.back(); // get sequence orientation
+		component.pop_back();
+				
+		auto got = headersToIds.find(component); // get the headers to uIds table (remove sequence orientation in the gap first)
+	
+		if (got == headersToIds.end()) { // this is the first time we see this segment
+			fprintf(stderr, "Error: cannot find node (%s). Terminating.\n", component.c_str());
+			exit(1);
+		}else{
+			path.push_back(got->second,sIdOr);
+		}
+	}
+	std::vector<std::string> uniques;
+	for (auto n : path.path) {
+		InSegment &segment = inSequences.findSegmentBySUId(n.id);
+		uniques.push_back(segment.getSeqHeader());
+	}
+	std::sort(uniques.begin(), uniques.end());
+	auto last = std::unique(uniques.begin(), uniques.end());
+	uniques.erase(last, uniques.end());
+	
+	std::vector<Path> alignmentPaths = inAlignments.getPaths(headersToIds);
+	PathAlignmentStats pathAlignmentStats = evaluatePath(path, inSequences, alignmentPaths, true);
+	int32_t alt = (int32_t)pathAlignmentStats.badAlignments - (int32_t)pathAlignmentStats.goodAlignments - (int32_t)uniques.size();
+	
+	std::cout<<+pathAlignmentStats.badAlignments<<"\t"<<+pathAlignmentStats.goodAlignments<<"\t"<<+alt<<"\t"<<path.size()<<"\t"<<uniques.size()<<std::endl;
 }

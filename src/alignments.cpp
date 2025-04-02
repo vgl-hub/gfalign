@@ -74,7 +74,7 @@ std::string InAlignment::print() {
 
 Path InAlignment::GAFpathToPath(phmap::flat_hash_map<std::string, unsigned int> &headersToIds) {
 
-	Path stepPath;
+	Path stepPath(this->qName);
 	size_t pos = 0;
 	std::string path = this->path;
 	while (path.size() != 0) {
@@ -211,7 +211,7 @@ bool InAlignments::traverseInAlignments(Alignments* alignmentBatch) { // travers
     return true;
 }
 
-InAlignment* InAlignments::traverseInAlignment(Log* threadLog, std::string* alignment, unsigned int pos, AlignmentStats* tmpStats) { // traverse a single read
+InAlignment* InAlignments::traverseInAlignment(Log* threadLog, std::string* alignment, unsigned int pos, AlignmentStats* tmpStats) { // traverse a single alignment
     
     std::vector<std::string> cols = readDelimited(*alignment, "\t");
     std::vector<Tag> inTags;
@@ -477,6 +477,15 @@ void InAlignments::filterAlignmentByNodelist(std::vector<std::string> nodelist, 
 #define DPRINTLLD(LLD) printf(#LLD " = %lld\n", (LLD))
 #define DPRINTLF(LF) printf(#LF " = %.5lf\n", (LF))
 
+void printMatrix(int dp[MAX_N][MAX_N], int rows, int cols) {
+	for (int i = 0; i < rows+1; i++) {
+		for (int j = 0; j < cols+1; j++) {
+			std::cout << dp[i][j] << "\t"; // Print with tab spacing
+		}
+		std::cout << std::endl;
+	}
+}
+
 using namespace std;
 typedef long long lld;
 typedef unsigned long long llu;
@@ -488,15 +497,14 @@ typedef unsigned long long llu;
 */
 
 inline int needleman_wunsch(uint32_t n, uint32_t m, int dp[MAX_N][MAX_N], int8_t match_score, int8_t mismatch_score, int8_t gap_score, Path &A, Path &B) {
-	for (uint32_t i=0;i<=n;i++) dp[i][0] = dp[0][i] = i * gap_score;
-	for (uint32_t i=1;i<=n;i++)
-	{
-		for (uint32_t j=1;j<=m;j++)
-		{
+	for (uint32_t i=0;i<=n;i++) dp[0][i] = i * gap_score; // to allow free terminal gaps
+	for (uint32_t i=1;i<=n;i++) {
+		for (uint32_t j=1;j<=m;j++) {
 			int S = (A[i-1] == B[j-1]) ? match_score : mismatch_score;
-			dp[i][j] = max(dp[i-1][j-1] + S, max(dp[i-1][j] + gap_score, dp[i][j-1] + gap_score));
+			dp[i][j] = max(dp[i-1][j-1] + S, max(dp[i-1][j] + (j<m ? gap_score : 0), dp[i][j-1] + gap_score)); // allow the query free terminal gaps
 		}
 	}
+	//printMatrix(dp, n, m);
 	return dp[n][m];
 }
 
@@ -519,20 +527,24 @@ inline PairwisePathAlignment get_optimal_alignment(uint32_t n, uint32_t m, int d
 			if (dp[ii][jj] == dp[ii-1][jj-1] + S){
 				SA.push_back(A[ii-1].id, A[ii-1].orientation);
 				SB.push_back(B[jj-1].id, B[jj-1].orientation);
+				++SBlen;
 				ii--; jj--;
 				alignmentScore += S;
-				++SBlen;
+				//std::cout<<"diag"<<std::endl;
 			}else if(dp[ii-1][jj] > dp[ii][jj-1]){
 				SA.push_back(A[ii-1].id, A[ii-1].orientation);
 				SB.push_back(-1, '0');
 				ii--;
 				if (SBlen > 0)
 					alignmentScore -= 1;
+				//std::cout<<"up"<<std::endl;
 			}else{
 				SA.push_back(-1, '0');
 				SB.push_back(B[jj-1].id, B[jj-1].orientation);
+				++SBlen;
 				jj--;
 				alignmentScore -= 1;
+				//std::cout<<"left"<<std::endl;
 			}
 		}
 	}
