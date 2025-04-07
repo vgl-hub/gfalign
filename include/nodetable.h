@@ -54,7 +54,7 @@ struct NodeTable {
 	}
 	
 	bool checkHamiltonian(phmap::flat_hash_map<uint32_t,uint32_t> &pathNodes, uint32_t pathNodesCount) {
-		if (pathNodesCount != nodeCount)
+		if (pathNodesCount + 2 != nodeCount)
 			return false;
 		for (auto& it: records) {
 			auto found = pathNodes.find(it.second.uId);
