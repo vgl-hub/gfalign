@@ -171,14 +171,16 @@ void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string 
 					++pathCounter;
 					phmap::flat_hash_map<uint32_t,uint32_t> pathNodes = newPath.pathToMap();
 					bool hamiltonian = nodeTable.checkHamiltonian(pathNodes, newPath.size()); // check if hamiltonian
+					std::cout<<+pathCounter<<'\t'<<+pathAlignmentStats.badAlignments<<'\t'<<+pathAlignmentStats.goodAlignments<<'\t'<<+alt<<'\t'<<newPath.size()<<'\t'<<uniques.size()<<'\t'<<(hamiltonian ? 'T' : 'F'); // print stats
 					if (uniques.size() >= minNodes && (bestPath_uniques < uniques.size() || (bestPath_uniques == uniques.size() && bestPath_alt > alt))) { // better path found
 						bestPath = newPath;
 						bestPath_alt = alt;
 						bestPath_uniques = uniques.size();
 						
-						newPath.print(inSequences); // print new path
+						std::cout<<'\t';
+						newPath.print(inSequences); // print new path only if better
 					}
-					std::cout<<"\t"<<+pathCounter<<"\t"<<+pathAlignmentStats.badAlignments<<"\t"<<+pathAlignmentStats.goodAlignments<<"\t"<<+alt<<"\t"<<newPath.size()<<"\t"<<uniques.size()<<"\t"<<(hamiltonian ? 'T' : 'F')<<std::endl; // print stats
+					std::cout<<std::endl;
 				}
 			}
 		}
