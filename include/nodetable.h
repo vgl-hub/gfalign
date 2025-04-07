@@ -28,7 +28,7 @@ struct NodeTable {
 				if (count < 1) // if count is 0 don't introduce the record
 					continue;
 			}
-			nodeCount += count; // keep track of the total number of nodes for an Hamiltonian path
+			nodeCount += count; // keep track of the total number of nodes for a Hamiltonian path
 			if (got != lookupTable.end()) {
 				Record record{got->second,count};
 				records.insert(std::make_pair(lineVec.at(0),record));
@@ -53,12 +53,12 @@ struct NodeTable {
 		nodeCount += record.count;
 	}
 	
-	bool checkHamiltonian(std::unordered_set<uint32_t> &pathNodes) {
-		if (pathNodes.size() != nodeCount)
+	bool checkHamiltonian(phmap::flat_hash_map<uint32_t,uint32_t> &pathNodes, uint32_t pathNodesCount) {
+		if (pathNodesCount != nodeCount)
 			return false;
 		for (auto& it: records) {
 			auto found = pathNodes.find(it.second.uId);
-			if (found == pathNodes.end()) {
+			if (found == pathNodes.end() || found->second != it.second.count) {
 				lg.verbose("This is not a Hamiltonian path.");
 				return false;
 			}

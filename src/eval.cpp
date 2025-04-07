@@ -169,8 +169,8 @@ void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string 
 				}else{
 					lg.verbose("Destination found.");
 					++pathCounter;
-					std::unordered_set<uint32_t> pathNodes = newPath.pathToSet();
-					bool hamiltonian = nodeTable.checkHamiltonian(pathNodes); // check if hamiltonian
+					phmap::flat_hash_map<uint32_t,uint32_t> pathNodes = newPath.pathToMap();
+					bool hamiltonian = nodeTable.checkHamiltonian(pathNodes, newPath.size()); // check if hamiltonian
 					if (uniques.size() >= minNodes && (bestPath_uniques < uniques.size() || (bestPath_uniques == uniques.size() && bestPath_alt > alt))) { // better path found
 						bestPath = newPath;
 						bestPath_alt = alt;

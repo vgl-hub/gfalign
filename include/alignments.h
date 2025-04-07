@@ -53,11 +53,11 @@ struct Path { // graph alignment path
 		return path.at(index);
 	}
 	
-	std::unordered_set<uint32_t> pathToSet() const {
-		std::unordered_set<uint32_t> uIdSet;
+	phmap::flat_hash_map<uint32_t,uint32_t> pathToMap() const {
+		phmap::flat_hash_map<uint32_t,uint32_t> uIdMap;
 		for (Step step : path)
-			uIdSet.insert(step.id);
-		return uIdSet;
+			++uIdMap[step.id];
+		return uIdMap;
 	}
 	
 	void reverse() {
