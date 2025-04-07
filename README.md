@@ -41,10 +41,10 @@ gfalign search -f assembly.gfa -n nodelist.tsv --source utig4-1 --destination ut
 
 The output is a multi-column tab-separated file structured as follows:
 ```
-path	# paths	#bad alignments	#good aligments	#diff	#score	#unique
+path	# paths	#bad alignments	#good aligments	#diff	#score	#unique #hamiltonian
 ```
 
-Where `path` is the actual path, `# paths` is the number of paths from source to destination found so far, `#bad alignments` is the number of alignments that are incosistent with this path, `#good alignments` is the number of alignments that are fully consistent with the path, `diff` is `bad-good`, `score` is gfalign's score for the alignment, and `unique` is the number of unique nodes in the path.
+Where `path` is the actual path (only reported for better paths), `# paths` is the number of paths from source to destination found so far, `#bad alignments` is the number of alignments that are incosistent with this path, `#good alignments` is the number of alignments that are fully consistent with the path, `diff` is `bad-good`, `score` is gfalign's score for the alignment, `unique` is the number of unique nodes in the path, and `hamiltonian` is a boolean.
 
 Only paths that during the search improve on the number of nodes included in the path and in the good/bad alignments will be outputted.
 

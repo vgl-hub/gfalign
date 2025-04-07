@@ -9,6 +9,7 @@ struct Record {
 struct NodeTable {
 	
 	phmap::flat_hash_map<std::string,Record> records;
+	uint32_t nodeCount = 0;
 	
 	NodeTable() {}
 	
@@ -20,11 +21,14 @@ struct NodeTable {
 			
 			std::vector<std::string> lineVec = readDelimited(line, "\t");
 			
-			auto got = lookupTable.find(lineVec.at(0));
+			auto got = lookupTable.find(lineVec.at(0)); // find uId for the node
 			uint32_t count = 1;
-			if (lineVec.size() > 1)
+			if (lineVec.size() > 1) { // the file contains a count column
 				count = std::stoi(lineVec.at(1));
-			
+				if (count < 1) // if count is 0 don't introduce the record
+					continue;
+			}
+			nodeCount += count; // keep track of the total number of nodes for an Hamiltonian path
 			if (got != lookupTable.end()) {
 				Record record{got->second,count};
 				records.insert(std::make_pair(lineVec.at(0),record));
@@ -43,7 +47,23 @@ struct NodeTable {
 	}
 	
 	void add(std::string node, Record record) {
+		if (record.count < 1) // only insert record if the count is > 0
+			return;
 		records.insert(std::make_pair(node,record));
+		nodeCount += record.count;
+	}
+	
+	bool checkHamiltonian(std::unordered_set<uint32_t> &pathNodes) {
+		if (pathNodes.size() != nodeCount)
+			return false;
+		for (auto& it: records) {
+			auto found = pathNodes.find(it.second.uId);
+			if (found == pathNodes.end()) {
+				lg.verbose("This is not a Hamiltonian path.");
+				return false;
+			}
+		}
+		return true;
 	}
 };
 

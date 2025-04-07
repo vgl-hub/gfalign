@@ -170,25 +170,15 @@ void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string 
 					lg.verbose("Destination found.");
 					++pathCounter;
 					std::unordered_set<uint32_t> pathNodes = newPath.pathToSet();
-					if (uniques.size() >= minNodes && (bestPath_uniques < uniques.size() || (bestPath_uniques == uniques.size() && bestPath_alt > alt))) {
+					bool hamiltonian = nodeTable.checkHamiltonian(pathNodes); // check if hamiltonian
+					if (uniques.size() >= minNodes && (bestPath_uniques < uniques.size() || (bestPath_uniques == uniques.size() && bestPath_alt > alt))) { // better path found
 						bestPath = newPath;
 						bestPath_alt = alt;
 						bestPath_uniques = uniques.size();
 						
-						newPath.print(inSequences);
-						std::cout<<"\t"<<+pathCounter<<"\t"<<+pathAlignmentStats.badAlignments<<"\t"<<+pathAlignmentStats.goodAlignments<<"\t"<<+alt<<"\t"<<newPath.size()<<"\t"<<uniques.size()<<std::endl;
+						newPath.print(inSequences); // print new path
 					}
-					bool hamiltonian = true;
-					for (auto& it: nodeTable.records) {
-						auto found = pathNodes.find(it.second.uId);
-						if (found == pathNodes.end()) {
-							lg.verbose("This is not a Hamiltonian path.");
-							hamiltonian = false;
-							break;
-						}
-					}
-					if (hamiltonian)
-						std::cout<<"Hamiltonian path found."<<std::endl;
+					std::cout<<"\t"<<+pathCounter<<"\t"<<+pathAlignmentStats.badAlignments<<"\t"<<+pathAlignmentStats.goodAlignments<<"\t"<<+alt<<"\t"<<newPath.size()<<"\t"<<uniques.size()<<"\t"<<(hamiltonian ? 'T' : 'F')<<std::endl; // print stats
 				}
 			}
 		}
