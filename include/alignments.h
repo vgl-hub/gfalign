@@ -96,16 +96,20 @@ struct PairwisePathAlignment{
 			for (uint32_t i = 0; i<A.size(); ++i) {
 				if (A.at(i).id == -1)
 					aln += std::string(idsToHeaders[B.at(i).id].size()+1, '-') + ",";
-				else
+				else if (A.at(i) != B.at(i))
 					aln += idsToHeaders[A.at(i).id] + A.at(i).orientation + ",";
+				else
+					aln += std::string(idsToHeaders[A.at(i).id].size()+1, '.') + ",";
 			}
 			aln += '\n';
 		}
 		for (uint32_t i = 0; i<B.size(); ++i) {
 			if (B.at(i).id == -1)
 				aln += std::string(idsToHeaders[A.at(i).id].size()+1, '-') + ",";
-			else
+			else if (A.at(i) != B.at(i))
 				aln += idsToHeaders[B.at(i).id] + B.at(i).orientation + ",";
+			else
+				aln += std::string(idsToHeaders[B.at(i).id].size()+1, '.') + ",";
 		}
 		return aln;
 	}
