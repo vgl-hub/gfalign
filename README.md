@@ -35,7 +35,8 @@ To check out all tool and options available use `gfalign -h`.
 Gfalign can find optimal paths between two nodes in assembly graphs. This can be useful particularly when trying to resolve complex tangles in genome assembly. To achieve this, you can run gfalign in `search` mode, e.g.:
 ```
 gfalign filter -g all_reads.gaf -n nodelist.ls -o alignment.gaf --min-nodes 3 # it is good practice to remove reads that only align between two nodes
-gfalign search -f assembly.gfa -n nodelist.tsv --source utig4-1 --destination utig4-2 -g alignment.gaf -m 100000000
+awk '$12 == 60' alignment.gaf > alignment.q60.gaf' # only retain primary alignments
+gfalign search -f assembly.gfa -n nodelist.tsv --source utig4-1 --destination utig4-2 -g alignment.q60.gaf -m 100000000
 ```
 `nodelist` is a two-column tab-separated file with all nodes in the tangle that the search cna visit and should try to include (i.e. for which the search maximizes for).  If a Hamiltonian path exists, it will be reported.
 
@@ -50,7 +51,7 @@ Only paths that during the search improve on the number of nodes included in the
 
 The alignment to any particular path can the be visualized with:
 ```
-gfalign evalPath -f assembly.gfa -n nodelist.tsv -p utig4-1+,utig4-2-,utig4-3+,utig4-4- -g alignment.gaf -m 100000000
+gfalign evalPath -f assembly.gfa -n nodelist.tsv -p utig4-1+,utig4-2-,utig4-3+,utig4-4- -g alignment.q60.gaf
 ```
 
 Gfalign does only performs a node pseudoalignment based on the gaf alignment. Paths can be futher validated by realigning the reads to the path, e.g.:
@@ -59,7 +60,7 @@ Gfalign does only performs a node pseudoalignment based on the gaf alignment. Pa
 cat assembly.gfa tangle.path.gfa > assembly.tangle.gfa # add a P line to the gfa with the path through the tangle
 gfastats assembly.tangle.gfa -o assembly.tangle.fasta # extract the sequence in the tangle
 
-rdeval reads.fastq.gz --include <(cut alignment.gaf) --homo 0 -o reads_subset.hc.fastq # extract reads for this region, homopolymer compress if the graph is hc
+rdeval reads.fastq.gz --include <(cut alignment.q60.gaf) --homo 0 -o reads_subset.hc.fastq # extract reads for this region, homopolymer compress if the graph is hc
 minimap2 -x map-ont -a -t 32 assembly.tangle.fasta reads_subset.hc.fastq | samtools sort -OBAM -o tangle.bam # align reads to the resolved tangle
 samtools view -q1 -F 0x100 tangle.bam -o tangle.no-secondary.no-q0.bam # filter secondary alignments and q0 alignments
 ```
