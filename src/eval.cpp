@@ -64,7 +64,7 @@ struct PathAlignmentStats {
 	uint32_t badAlignments = 0, goodAlignments = 0, unaligned = 0;
 };
 
-PathAlignmentStats evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> alignmentPaths, bool printAlignments = false) {
+PathAlignmentStats evaluatePath(const Path &path, InSequences &inSequences, std::vector<Path> alignmentPaths, bool filterAlignments = false, bool printAlignments = false) {
 	
 	Step lastStep = path.path.back();
 	InSegment &segment = inSequences.findSegmentBySUId(lastStep.id);
@@ -79,15 +79,17 @@ PathAlignmentStats evaluatePath(const Path &path, InSequences &inSequences, std:
 		uIds.insert(step.id);
 	int dp[MAX_N][MAX_N] = {{0}};
 	for (Path &alignmentPath : alignmentPaths) {
-		bool next = false;
-		for (Step step : alignmentPath.path) { // remove spurious reads
-			if (uIds.find(step.id) == uIds.end()) {
-				next = true;
-				++pathAlignmentStats.unaligned;
+		if (filterAlignments) {
+			bool next = false;
+			for (Step step : alignmentPath.path) { // remove spurious reads
+				if (uIds.find(step.id) == uIds.end()) {
+					next = true;
+					++pathAlignmentStats.unaligned;
+				}
 			}
+			if (next)
+				continue;
 		}
-		if (next)
-			continue;
 		PairwisePathAlignment alignmentFw = alignPaths(0, -1, -1, path, alignmentPath, dp);
 		PairwisePathAlignment alignmentRc = alignPaths(0, -1, -1, path, alignmentPath.reverseComplement(), dp);
 		int32_t bestAlignmentScore = (alignmentFw.alignmentScore > alignmentRc.alignmentScore) ? alignmentFw.alignmentScore : alignmentRc.alignmentScore;
@@ -158,7 +160,7 @@ void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string 
 				auto last = std::unique(uniques.begin(), uniques.end());
 				uniques.erase(last, uniques.end());
 				
-				PathAlignmentStats pathAlignmentStats = evaluatePath(newPath, inSequences, alignmentPaths);
+				PathAlignmentStats pathAlignmentStats = evaluatePath(newPath, inSequences, alignmentPaths, true);
 				int32_t alt = (int32_t)pathAlignmentStats.badAlignments - (int32_t)pathAlignmentStats.goodAlignments - (int32_t)uniques.size();
 				
 				if(v.id != nodeTable[destination].uId) {
@@ -235,7 +237,7 @@ void evalPath(InSequences &inSequences, InAlignments& inAlignments, std::string 
 	uniques.erase(last, uniques.end());
 	
 	std::vector<Path> alignmentPaths = inAlignments.getPaths(headersToIds);
-	PathAlignmentStats pathAlignmentStats = evaluatePath(path, inSequences, alignmentPaths, true);
+	PathAlignmentStats pathAlignmentStats = evaluatePath(path, inSequences, alignmentPaths, false, true);
 	int32_t alt = (int32_t)pathAlignmentStats.badAlignments - (int32_t)pathAlignmentStats.goodAlignments - (int32_t)uniques.size();
 	
 	std::cout<<+pathAlignmentStats.badAlignments<<"\t"<<+pathAlignmentStats.goodAlignments<<"\t"<<+alt<<"\t"<<path.size()<<"\t"<<uniques.size()<<std::endl;
