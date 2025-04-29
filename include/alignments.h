@@ -16,7 +16,7 @@ struct Step { // step in an alignment path
 		return this->id == step.id && this->orientation == step.orientation;
 	}
 	bool operator !=(const Step& step) const {
-		return this->id != step.id && this->orientation != step.orientation;
+		return this->id != step.id || this->orientation != step.orientation;
 	}
 };
 
@@ -47,9 +47,6 @@ struct Path { // graph alignment path
 	}
 	
 	const Step& at(size_t index) const {
-		if (index >= size()) {
-			throw std::out_of_range("Index out of bounds");
-		}
 		return path.at(index);
 	}
 	

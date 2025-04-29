@@ -504,7 +504,7 @@ inline int needleman_wunsch(uint32_t n, uint32_t m, int dp[MAX_N][MAX_N], int8_t
 			dp[i][j] = max(dp[i-1][j-1] + S, max(dp[i-1][j] + (j<m ? gap_score : 0), dp[i][j-1] + gap_score)); // allow the query free terminal gaps
 		}
 	}
-	//printMatrix(dp, n, m);
+//	printMatrix(dp, n, m);
 	return dp[n][m];
 }
 
@@ -530,21 +530,21 @@ inline PairwisePathAlignment get_optimal_alignment(uint32_t n, uint32_t m, int d
 				++SBlen;
 				ii--; jj--;
 				alignmentScore += S;
-				//std::cout<<"diag"<<std::endl;
-			}else if(dp[ii-1][jj] > dp[ii][jj-1]){
+//				std::cout<<"diag"<<std::endl;
+			}else if(dp[ii-1][jj] >= dp[ii][jj-1]){
 				SA.push_back(A[ii-1].id, A[ii-1].orientation);
 				SB.push_back(-1, '0');
 				ii--;
 				if (SBlen > 0)
 					alignmentScore -= 1;
-				//std::cout<<"up"<<std::endl;
+//				std::cout<<"up"<<std::endl;
 			}else{
 				SA.push_back(-1, '0');
 				SB.push_back(B[jj-1].id, B[jj-1].orientation);
 				++SBlen;
 				jj--;
 				alignmentScore -= 1;
-				//std::cout<<"left"<<std::endl;
+//				std::cout<<"left"<<std::endl;
 			}
 		}
 	}

@@ -101,8 +101,8 @@ PathAlignmentStats evaluatePath(const Path &path, InSequences &inSequences, std:
 		if (printAlignments) {
 			std::string aln = (alignmentFw.alignmentScore > alignmentRc.alignmentScore) ? alignmentFw.getAlignment(*inSequences.getHash2(), true) : alignmentRc.getAlignment(*inSequences.getHash2(), true);
 			std::cout<<aln<<'\t'<<alignmentPath.qName<<'\t'<<bestAlignmentScore<<std::endl;
-			//std::cout<<alignmentFw.getAlignment(*inSequences.getHash2())<<std::endl;
-			//std::cout<<alignmentRc.getAlignment(*inSequences.getHash2())<<std::endl;
+//			std::cout<<alignmentFw.getAlignment(*inSequences.getHash2())<<" "<<alignmentFw.alignmentScore<<std::endl;
+//			std::cout<<alignmentRc.getAlignment(*inSequences.getHash2())<<" "<<alignmentRc.alignmentScore<<std::endl;
 		}
 	}
 	return pathAlignmentStats;
