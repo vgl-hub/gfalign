@@ -69,10 +69,9 @@ PathAlignmentStats evaluatePath(const Path &path, InSequences &inSequences, std:
 	Step lastStep = path.path.back();
 	InSegment &segment = inSequences.findSegmentBySUId(lastStep.id);
 	lg.verbose("We are at segment: " + segment.getSeqHeader() + lastStep.orientation);
-	if (printAlignments) {
-		path.print(inSequences);
-		std::cout<<std::endl;
-	}
+	if (printAlignments)
+		std::cout<<path.returnPath(inSequences)<<std::endl;
+
 	PathAlignmentStats pathAlignmentStats;
 	phmap::flat_hash_set<uint32_t> uIds;
 	for (Step step : path.path)
@@ -108,7 +107,7 @@ PathAlignmentStats evaluatePath(const Path &path, InSequences &inSequences, std:
 	return pathAlignmentStats;
 }
 
-void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string nodeFile, std::string source, std::string destination, uint32_t maxSteps, uint32_t minNodes) {
+void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string nodeFile, std::string source, std::string destination, uint32_t maxSteps, uint32_t minNodes, bool returnAllPaths = false) {
 	
 	Path bestPath;
 	int32_t bestPath_alt = std::numeric_limits<int>::max();
@@ -173,16 +172,15 @@ void dijkstra(InSequences &inSequences, InAlignments& inAlignments, std::string 
 					++pathCounter;
 					phmap::flat_hash_map<uint32_t,uint32_t> pathNodes = newPath.pathToMap();
 					bool hamiltonian = nodeTable.checkHamiltonian(pathNodes, newPath.size()); // check if hamiltonian
-					std::cout<<+pathCounter<<'\t'<<+pathAlignmentStats.badAlignments<<'\t'<<+pathAlignmentStats.goodAlignments<<'\t'<<+alt<<'\t'<<newPath.size()<<'\t'<<uniques.size()<<'\t'<<(hamiltonian ? 'T' : 'F'); // print stats
+					bool printPath = false;
 					if (uniques.size() >= minNodes && (bestPath_uniques < uniques.size() || (bestPath_uniques == uniques.size() && bestPath_alt > alt))) { // better path found
 						bestPath = newPath;
 						bestPath_alt = alt;
 						bestPath_uniques = uniques.size();
-						
-						std::cout<<'\t';
-						newPath.print(inSequences); // print new path only if better
+						printPath = true;
 					}
-					std::cout<<std::endl;
+					if (returnAllPaths || printPath)
+						std::cout<<+pathCounter<<'\t'<<+pathAlignmentStats.badAlignments<<'\t'<<+pathAlignmentStats.goodAlignments<<'\t'<<+alt<<'\t'<<newPath.size()<<'\t'<<uniques.size()<<'\t'<<(hamiltonian ? 'T' : 'F')<<'\t'<<newPath.returnPath(inSequences)<<std::endl; // print new path only if better
 				}
 			}
 		}

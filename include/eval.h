@@ -5,6 +5,6 @@ void evalGFA(InSequences& InSequences, InAlignments& InAlignments);
 
 void evalPath(InSequences& inSequences, InAlignments& InAlignments, std::string pathStr);
 
-void dijkstra(InSequences& inSequences, InAlignments& InAlignments, std::string nodeFile, std::string source, std::string destination, uint32_t maxSteps, uint32_t minNodes);
+void dijkstra(InSequences& inSequences, InAlignments& InAlignments, std::string nodeFile, std::string source, std::string destination, uint32_t maxSteps, uint32_t minNodes, bool returnAllPaths);
 
 #endif /* EVAL_H */

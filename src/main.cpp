@@ -405,6 +405,7 @@ int main(int argc, char **argv) {
                 {"out-format", required_argument, 0, 'o'},
                 {"source", required_argument, 0, 's'},
                 
+				{"return-all-paths", no_argument, &userInput.returnAllPaths, 1},
                 {"graph-statistics", no_argument, &userInput.stats_flag, 1},
 				{"min-nodes", required_argument, 0, 1},
                 
@@ -487,6 +488,7 @@ int main(int argc, char **argv) {
 						printf("-m --max-steps <int> limit graph exploration.\n");
                         printf("-n --node-file <filename> list of nodes available to the search.\n");
                         printf("-s --source <string> source node.\n");
+						printf("--return-all-paths return all viable paths as they are discovered, not only better ones (default: false).\n");
 						printf("--graph-statistics output graph statistics (default: false).\n");
 						printf("--min-nodes <int> do not report paths with less than int nodes (default: 0).\n");
                         exit(0);

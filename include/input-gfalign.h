@@ -10,6 +10,7 @@ struct UserInputGfalign : UserInput {
 	uint32_t minNodes = 0;
     std::string nodeFile, source, destination, path;
     uint32_t dijkstraSteps = 100000;
+	int32_t returnAllPaths = false;
 };
 
 class Input {

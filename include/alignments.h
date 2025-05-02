@@ -68,8 +68,18 @@ struct Path { // graph alignment path
 			step.orientation = (step.orientation == '+') ? '-' : '+';
 		return rc;
 	}
+
+	std::string returnPath(InSequences &inSequences) const {
+		std::string path;
+		for (uint32_t i = 0; i<this->path.size(); ++i) {
+			path += inSequences.findSegmentBySUId(this->path.at(i).id).getSeqHeader() + this->path.at(i).orientation;
+			if (i+1<this->path.size())
+				path += ',';
+		}
+		return path;
+	}
 	
-	void print(InSequences &inSequences) const {
+	void printPath(InSequences &inSequences) const {
 		for (uint32_t i = 0; i<this->path.size(); ++i) {
 			std::cout<<inSequences.findSegmentBySUId(this->path.at(i).id).getSeqHeader()<<this->path.at(i).orientation;
 			if (i+1<this->path.size())
